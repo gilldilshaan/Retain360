@@ -1,0 +1,88 @@
+@import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Inter:wght@400;450;500;600;700&display=swap");
+
+/* ────────────────────────────────────────────────────────────
+   KINSHIP · design tokens
+   Warm, editorial, academic. No gradients, no neon, no glass.
+   ──────────────────────────────────────────────────────────── */
+
+:root {
+  --paper: #f1e4cc;
+  --paper-soft: #f6eeda;
+  --sage: #798165;
+  --sage-deep: #5f6750;
+  --charcoal: #2c2725;
+  --ink-soft: #6b645c;
+  --line: rgba(44, 39, 37, 0.14);
+  --line-strong: rgba(44, 39, 37, 0.28);
+
+  --serif: "Libre Baskerville", Georgia, serif;
+  --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --fast: 180ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--charcoal);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 2px;
+}
+
+.micro {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.serif {
+  font-family: var(--serif);
+}
+
+/* thin hairline rules used across the app */
+.hairline {
+  height: 1px;
+  background: var(--line);
+}
+
+/* ── shared icon stroke style ─────────────────────────────── */
+.icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
