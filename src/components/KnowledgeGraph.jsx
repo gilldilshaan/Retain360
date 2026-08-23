@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react"
 import { positionFor } from "../data/positions.js"
 import { subjectOf } from "../data/subjects.js"
+import { relatedChainIds } from "../data/connections.js"
 
 const NODE_W = 196
 const NODE_H = 62
@@ -95,13 +96,9 @@ export default function KnowledgeGraph({
     }
   }, [viewRef, zoomAroundCenter, fit, onClear, focusOn])
 
-  const neighbors = new Set()
-  if (selectedId) {
-    for (const c of connections) {
-      if (c.source === selectedId) neighbors.add(c.target)
-      if (c.target === selectedId) neighbors.add(c.source)
-    }
-  }
+  // When a node is selected, highlight its whole knowledge chain —
+  // prerequisites of prerequisites and concepts that use it later.
+  const chainIds = selectedId ? relatedChainIds(selectedId) : null
 
   const visibleEdges = connections.filter((e) => {
     if (e.type === "prerequisite") return showPrerequisites
@@ -144,7 +141,7 @@ export default function KnowledgeGraph({
             const a = positionFor(e.source)
             const b = positionFor(e.target)
             if (!a || !b) return null
-            const active = selectedId && (e.source === selectedId || e.target === selectedId)
+            const inChain = chainIds && chainIds.has(e.source) && chainIds.has(e.target)
             return (
               <line
                 key={`${e.source}->${e.target}`}
@@ -152,9 +149,10 @@ export default function KnowledgeGraph({
                 y1={a.y + NODE_H / 2}
                 x2={b.x + NODE_W / 2}
                 y2={b.y + NODE_H / 2}
-                stroke={active ? "#5f6750" : "#798165"}
-                strokeWidth={active ? 2 : 1}
-                opacity={selectedId && !active ? 0.14 : active ? 0.95 : 0.4}
+                stroke={inChain ? "#5f6750" : "#798165"}
+                strokeWidth={inChain ? 1.9 : 1}
+                strokeDasharray={e.type === "related" ? "4 4" : undefined}
+                opacity={chainIds ? (inChain ? 0.95 : 0.12) : e.type === "related" ? 0.3 : 0.45}
                 strokeLinecap="round"
               />
             )
@@ -163,15 +161,15 @@ export default function KnowledgeGraph({
 
         {concepts.map((concept) => {
           const isSelected = concept.id === selectedId
-          const isNeighbor = neighbors.has(concept.id)
+          const inChain = chainIds && chainIds.has(concept.id)
           return (
             <GraphNode
               key={concept.id}
               concept={concept}
               pos={positionFor(concept.id)}
               selected={isSelected}
-              highlighted={Boolean(selectedId) && isNeighbor}
-              dimmed={Boolean(selectedId) && !isSelected && !isNeighbor}
+              highlighted={Boolean(chainIds) && inChain && !isSelected}
+              dimmed={Boolean(chainIds) && !inChain}
               onSelect={() => onSelect(concept.id)}
               onHover={() => onHover(concept.id)}
               onLeave={() => onHover(null)}

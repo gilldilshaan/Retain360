@@ -17,12 +17,12 @@ export default function KnowledgeDebt({ concept, onRefresh, lookup }) {
   return (
     <section className="inspector-section debt">
       <span className="micro section-label">Knowledge Debt</span>
-      <p className="debt-text">
-        Your retention of <strong>{debt.name}</strong> is {debt.retention}%. It is a prerequisite for{" "}
-        <strong>{concept.name}</strong> — refreshing it will strengthen everything built on top.
+      <p className="debt-title">
+        {debt.name} <span className="debt-pct">{debt.retention}% retention</span>
       </p>
+      <p className="debt-text">This prerequisite may need a quick refresh.</p>
       <button type="button" className="btn btn-quiet" onClick={() => onRefresh(debt.id)}>
-        Refresh · 2 min
+        Quick Refresh
       </button>
     </section>
   )

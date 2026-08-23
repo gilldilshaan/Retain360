@@ -1,19 +1,29 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"
 
 import Sidebar from "./components/Sidebar.jsx"
 import TopHeader from "./components/TopHeader.jsx"
-import GraphToolbar from "./components/GraphToolbar.jsx"
-import KnowledgeGraph from "./components/KnowledgeGraph.jsx"
-import ConceptInspector from "./components/ConceptInspector.jsx"
+import KnowledgeMapPage from "./components/KnowledgeMapPage.jsx"
+import Dashboard from "./components/Dashboard.jsx"
+import NotesPage from "./components/NotesPage.jsx"
+import KnowledgeHealth from "./components/KnowledgeHealth.jsx"
+import SubjectsPage from "./components/SubjectsPage.jsx"
 import RefreshModal from "./components/RefreshModal.jsx"
-import SearchConcepts from "./components/SearchConcepts.jsx"
-import Legend from "./components/Legend.jsx"
 
 import { concepts, conceptsById } from "./data/concepts.js"
-import { connections } from "./data/connections.js"
 
+// Small text shown in the header for whichever page is open.
+const PAGE_META = {
+  "/": { eyebrow: "My Knowledge", title: "Dashboard", sub: "Your whole degree, one connected system." },
+  "/map": { eyebrow: "My Knowledge", title: "Knowledge Map", sub: "See how everything you've learned connects." },
+  "/health": { eyebrow: "My Knowledge", title: "Knowledge Health", sub: "What you remember — and what's fading." },
+  "/notes": { eyebrow: "My Library", title: "My Notes", sub: "Everything you've written, searchable." },
+  "/subjects": { eyebrow: "My Knowledge", title: "Subjects", sub: "Courses across all four years." },
+}
+
+// BrowserRouter is provided in main.jsx; this component uses useLocation/useNavigate.
 export default function App() {
-  // ── graph state (lifted here so toolbar / search / inspector share it) ──
+  // ── graph state (single source of truth for the whole app) ──
   const [selectedId, setSelectedId] = useState(null)
   const [hoveredId, setHoveredId] = useState(null)
   const [semesterFilter, setSemesterFilter] = useState("all")
@@ -28,17 +38,16 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const viewRef = useRef(null)
 
-  // ⌘K / Ctrl+K opens concept search
-  useEffect(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault()
-        setSearchOpen((o) => !o)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [])
+  // ── recent activity (mock list, grows when you review a concept) ──
+  const [activities, setActivities] = useState([
+    { id: "a2", icon: "→", text: "Explored Neural Networks", when: "Today" },
+    { id: "a1", icon: "→", text: "Opened Mathematics", when: "Yesterday" },
+  ])
+
+  const location = useLocation()
+  const navigate = useNavigate()
+  const pageMeta = PAGE_META[location.pathname] || PAGE_META["/"]
+  const onMapPage = location.pathname === "/map"
 
   useEffect(() => {
     if (!toast) return
@@ -46,13 +55,11 @@ export default function App() {
     return () => clearTimeout(t)
   }, [toast])
 
-  // retention values with any "mark as reviewed" overrides applied
+  // ── retention values with any "mark as reviewed" overrides applied ──
   const conceptsLive = useMemo(
     () =>
       concepts.map((c) =>
-        retentionOverrides[c.id] !== undefined
-          ? { ...c, retention: retentionOverrides[c.id] }
-          : c
+        retentionOverrides[c.id] !== undefined ? { ...c, retention: retentionOverrides[c.id] } : c
       ),
     [retentionOverrides]
   )
@@ -61,43 +68,18 @@ export default function App() {
     [conceptsLive]
   )
 
-  // ── derived: filtered nodes + edges ──
-  const visibleConcepts = useMemo(
-    () =>
-      conceptsLive.filter((c) => {
-        if (semesterFilter !== "all" && String(c.semester) !== String(semesterFilter)) return false
-        if (subjectFilter !== "all" && c.subject !== subjectFilter) return false
-        return true
-      }),
-    [conceptsLive, semesterFilter, subjectFilter]
+  // ── shared actions ──
+
+  // Used by Dashboard / Notes / Health / Subjects:
+  // select a concept and land on its node in the map.
+  const goToConcept = useCallback(
+    (id) => {
+      setSelectedId(id)
+      navigate("/map")
+      requestAnimationFrame(() => viewRef.current?.focusOn(id))
+    },
+    [navigate]
   )
-
-  const visibleIds = useMemo(() => new Set(visibleConcepts.map((c) => c.id)), [visibleConcepts])
-
-  const visibleConnections = useMemo(
-    () =>
-      connections.filter((e) => {
-        if (!visibleIds.has(e.source) || !visibleIds.has(e.target)) return false
-        if (e.type === "prerequisite") return showPrerequisites
-        if (e.type === "used in") return showRelated
-        return true
-      }),
-    [visibleIds, showPrerequisites, showRelated]
-  )
-
-  const selectedConcept = selectedId ? conceptsLiveById[selectedId] : null
-
-  const handleSelectNode = useCallback((id) => setSelectedId(id), [])
-  const handleClearSelection = useCallback(() => setSelectedId(null), [])
-
-  const handleSearchPick = useCallback((id) => {
-    setSelectedId(id)
-    setSearchOpen(false)
-    // let the inspector mount before panning the graph to the node
-    requestAnimationFrame(() => viewRef.current?.focusOn(id))
-  }, [])
-
-  const openRefresh = useCallback((id) => setRefreshId(id), [])
 
   const handleReviewed = useCallback((id) => {
     setRetentionOverrides((prev) => ({
@@ -106,91 +88,85 @@ export default function App() {
     }))
     setToast(`${conceptsById[id]?.name} reviewed — retention updated`)
     setRefreshId(null)
+    setActivities((prev) => [
+      { id: `a${Date.now()}`, icon: "✓", text: `Reviewed ${conceptsById[id]?.name}`, when: "Just now" },
+      ...prev,
+    ])
   }, [])
 
   return (
     <div className="app">
-      <Sidebar active="map" />
+      <Sidebar active={location.pathname} onNavigate={(path) => navigate(path)} />
 
       <main className="main">
-        <TopHeader onOpenSearch={() => setSearchOpen((o) => !o)} />
-
-        <GraphToolbar
-          semester={semesterFilter}
-          subject={subjectFilter}
-          onSemester={setSemesterFilter}
-          onSubject={setSubjectFilter}
-          showPrerequisites={showPrerequisites}
-          showRelated={showRelated}
-          onTogglePrerequisites={setShowPrerequisites}
-          onToggleRelated={setShowRelated}
-          onZoomIn={() => viewRef.current?.zoomIn()}
-          onZoomOut={() => viewRef.current?.zoomOut()}
-          onFit={() => viewRef.current?.fit()}
-          onReset={() => viewRef.current?.reset()}
-          conceptCount={visibleConcepts.length}
-          connectionCount={visibleConnections.length}
+        <TopHeader
+          meta={pageMeta}
+          onOpenSearch={onMapPage ? () => setSearchOpen((o) => !o) : undefined}
         />
 
-        <div className="workspace">
-          <div className="graph-wrap">
-            {visibleConcepts.length === 0 ? (
-              <div className="graph-empty">
-                <h3 className="serif">No concepts match these filters.</h3>
-                <p>Try widening the semester or subject filter.</p>
-                <button
-                  type="button"
-                  className="btn btn-quiet"
-                  onClick={() => {
-                    setSemesterFilter("all")
-                    setSubjectFilter("all")
-                  }}
-                >
-                  Clear filters
-                </button>
-              </div>
-            ) : (
-              <KnowledgeGraph
-                concepts={visibleConcepts}
-                connections={connections.filter(
-                  (e) => visibleIds.has(e.source) && visibleIds.has(e.target)
-                )}
-                selectedId={selectedId}
-                hoveredId={hoveredId}
-                onSelect={handleSelectNode}
-                onHover={setHoveredId}
-                onClear={handleClearSelection}
-                showPrerequisites={showPrerequisites}
-                showRelated={showRelated}
-                viewRef={viewRef}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Dashboard
+                conceptsLive={conceptsLive}
+                conceptsLiveById={conceptsLiveById}
+                activities={activities}
+                onExplore={goToConcept}
               />
-            )}
-            <Legend showPrerequisites={showPrerequisites} showRelated={showRelated} />
-          </div>
-
-          <ConceptInspector
-            key={selectedId || "empty"}
-            concept={selectedConcept}
-            onSelectConcept={handleSelectNode}
-            onRefresh={openRefresh}
-            lookup={conceptsLiveById}
+            }
           />
-        </div>
+          <Route
+            path="/map"
+            element={
+              <KnowledgeMapPage
+                conceptsLive={conceptsLive}
+                conceptsLiveById={conceptsLiveById}
+                selectedId={selectedId}
+                setSelectedId={setSelectedId}
+                hoveredId={hoveredId}
+                setHoveredId={setHoveredId}
+                semesterFilter={semesterFilter}
+                setSemesterFilter={setSemesterFilter}
+                subjectFilter={subjectFilter}
+                setSubjectFilter={setSubjectFilter}
+                showPrerequisites={showPrerequisites}
+                setShowPrerequisites={setShowPrerequisites}
+                showRelated={showRelated}
+                setShowRelated={setShowRelated}
+                searchOpen={searchOpen}
+                setSearchOpen={setSearchOpen}
+                viewRef={viewRef}
+                onRefresh={setRefreshId}
+              />
+            }
+          />
+          <Route
+            path="/health"
+            element={<KnowledgeHealth conceptsLive={conceptsLive} onSelectConcept={goToConcept} />}
+          />
+          <Route path="/notes" element={<NotesPage conceptsLiveById={conceptsLiveById} onSelectConcept={goToConcept} />} />
+          <Route
+            path="/subjects"
+            element={
+              <SubjectsPage
+                conceptsLive={conceptsLive}
+                onOpenSubject={(subjectId) => {
+                  setSemesterFilter("all")
+                  setSubjectFilter(subjectId)
+                  navigate("/map")
+                }}
+              />
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
-
-      <SearchConcepts
-        concepts={conceptsLive}
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelect={handleSearchPick}
-      />
 
       {refreshId && (
         <RefreshModal
           concept={conceptsById[refreshId]}
-          retention={
-            retentionOverrides[refreshId] ?? conceptsById[refreshId]?.retention ?? 50
-          }
+          retention={retentionOverrides[refreshId] ?? conceptsById[refreshId]?.retention ?? 50}
           onClose={() => setRefreshId(null)}
           onReviewed={handleReviewed}
         />

@@ -1,19 +1,25 @@
 import React from "react"
 import { SearchIcon, BellIcon } from "./Icons.jsx"
 
-export default function TopHeader({ onOpenSearch }) {
+// Header text comes from PAGE_META in App — it changes with the route.
+export default function TopHeader({ meta, onOpenSearch }) {
   return (
     <header className="top-header">
       <div className="header-text">
-        <div className="micro">My Knowledge</div>
+        <div className="micro">{meta.eyebrow}</div>
         <h1 className="header-title">
-          <span className="serif">Knowledge Map</span>
+          <span className="serif">{meta.title}</span>
         </h1>
-        <p className="header-sub">See how everything you&rsquo;ve learned connects.</p>
+        <p className="header-sub">{meta.sub}</p>
       </div>
 
       <div className="header-actions">
-        <button className="search-trigger" onClick={onOpenSearch} aria-label="Search concepts">
+        <button
+          className="search-trigger"
+          onClick={onOpenSearch}
+          aria-label="Search concepts"
+          style={{ display: onOpenSearch ? undefined : "none" }}
+        >
           <SearchIcon />
           <kbd>⌘ K</kbd>
         </button>

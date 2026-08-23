@@ -43,3 +43,20 @@ export const connections = buildConnections()
 
 export const connectionType = (type) =>
   ({ prerequisite: "Prerequisite", "used in": "Used in", related: "Related" }[type] || type)
+
+// Every concept connected to `id`, directly or through other concepts —
+// walk prerequisites upward and usedIn links downward until nothing new
+// is found. Returns a Set of ids (including `id` itself).
+export function relatedChainIds(id) {
+  const seen = new Set([id])
+  const queue = [id]
+  while (queue.length > 0) {
+    const current = conceptsById[queue.pop()]
+    if (!current) continue
+    for (const prereq of current.prerequisites || [])
+      if (!seen.has(prereq)) { seen.add(prereq); queue.push(prereq) }
+    for (const later of current.usedIn || [])
+      if (!seen.has(later)) { seen.add(later); queue.push(later) }
+  }
+  return seen
+}

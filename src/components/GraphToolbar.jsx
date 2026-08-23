@@ -11,6 +11,7 @@ export default function GraphToolbar({
   showRelated,
   onTogglePrerequisites,
   onToggleRelated,
+  onResetFilters,
   onZoomIn,
   onZoomOut,
   onFit,
@@ -34,7 +35,10 @@ export default function GraphToolbar({
           onChange={onSubject}
         />
         <Toggle checked={showPrerequisites} label="Prerequisites" onChange={onTogglePrerequisites} />
-        <Toggle checked={showRelated} label="Related" onChange={onToggleRelated} />
+        <Toggle checked={showRelated} label="Related Concepts" onChange={onToggleRelated} />
+        <button type="button" className="tool-reset" onClick={onResetFilters}>
+          Reset Filters
+        </button>
       </div>
 
       <div className="toolbar-right">

@@ -1,26 +1,28 @@
 import React from "react"
 import { MapIcon, OverviewIcon, MemoryIcon, NotesIcon, SubjectsIcon } from "./Icons.jsx"
 
+// One entry per route. `active` is the current pathname so the highlight
+// always matches the URL.
 const nav = [
-  { id: "overview", label: "Overview", icon: OverviewIcon },
-  { id: "map", label: "Knowledge Map", icon: MapIcon },
-  { id: "memory", label: "Memory", icon: MemoryIcon },
-  { id: "notes", label: "My Notes", icon: NotesIcon },
-  { id: "subjects", label: "Subjects", icon: SubjectsIcon },
+  { id: "/", label: "Overview", icon: OverviewIcon },
+  { id: "/map", label: "Knowledge Map", icon: MapIcon },
+  { id: "/health", label: "Knowledge Health", icon: MemoryIcon },
+  { id: "/notes", label: "My Notes", icon: NotesIcon },
+  { id: "/subjects", label: "Subjects", icon: SubjectsIcon },
 ]
 
-export default function Sidebar({ active = "map", onNavigate }) {
+export default function Sidebar({ active, onNavigate }) {
   return (
     <aside className="sidebar" aria-label="Primary navigation">
-      <div className="brand">
-        <div className="brand-mark" aria-hidden="true">
+      <button type="button" className="brand" onClick={() => onNavigate("/")}>
+        <span className="brand-mark" aria-hidden="true">
           <MapIcon width={20} height={20} />
-        </div>
-        <div>
-          <div className="brand-name">KINSHIP</div>
-          <div className="brand-sub">ACADEMIC KNOWLEDGE WEB</div>
-        </div>
-      </div>
+        </span>
+        <span className="brand-text">
+          <span className="brand-name">KINSHIP</span>
+          <span className="brand-sub">ACADEMIC KNOWLEDGE WEB</span>
+        </span>
+      </button>
 
       <nav className="nav-list">
         {nav.map((item) => {
@@ -31,7 +33,7 @@ export default function Sidebar({ active = "map", onNavigate }) {
               key={item.id}
               className={`nav-item${isActive ? " active" : ""}`}
               aria-current={isActive ? "page" : undefined}
-              onClick={() => onNavigate?.(item.id)}
+              onClick={() => onNavigate(item.id)}
             >
               <Icon />
               <span>{item.label}</span>
