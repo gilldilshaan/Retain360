@@ -9,16 +9,21 @@ import NotesPage from "./components/NotesPage.jsx"
 import KnowledgeHealth from "./components/KnowledgeHealth.jsx"
 import SubjectsPage from "./components/SubjectsPage.jsx"
 import RefreshModal from "./components/RefreshModal.jsx"
+import LandingPage from "./components/LandingPage.jsx"
+import SearchPage from "./components/SearchPage.jsx"
+import ProfilePage from "./components/ProfilePage.jsx"
+import { buildNotifications } from "./components/dashboard/NotificationsPanel.jsx"
 
 import { concepts, conceptsById } from "./data/concepts.js"
 
-// Small text shown in the header for whichever page is open.
 const PAGE_META = {
-  "/": { eyebrow: "My Knowledge", title: "Dashboard", sub: "Your whole degree, one connected system." },
-  "/map": { eyebrow: "My Knowledge", title: "Knowledge Map", sub: "See how everything you've learned connects." },
-  "/health": { eyebrow: "My Knowledge", title: "Knowledge Health", sub: "What you remember — and what's fading." },
+  "/dashboard": { eyebrow: "My Knowledge", title: "Dashboard", sub: "Your whole degree, one connected system." },
+  "/knowledge": { eyebrow: "My Knowledge", title: "Knowledge Web", sub: "See how everything you've learned connects." },
+  "/memory": { eyebrow: "My Knowledge", title: "Memory", sub: "What you remember — and what's fading." },
   "/notes": { eyebrow: "My Library", title: "My Notes", sub: "Everything you've written, searchable." },
   "/subjects": { eyebrow: "My Knowledge", title: "Subjects", sub: "Courses across all four years." },
+  "/search": { eyebrow: "My Library", title: "Search & Notes", sub: "Find any concept or note across your degree." },
+  "/profile": { eyebrow: "Account", title: "Profile", sub: "Your academic snapshot at a glance." },
 }
 
 // BrowserRouter is provided in main.jsx; this component uses useLocation/useNavigate.
@@ -36,6 +41,7 @@ export default function App() {
   const [refreshId, setRefreshId] = useState(null)
   const [retentionOverrides, setRetentionOverrides] = useState({})
   const [toast, setToast] = useState(null)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const viewRef = useRef(null)
 
   // ── recent activity (mock list, grows when you review a concept) ──
@@ -46,14 +52,18 @@ export default function App() {
 
   const location = useLocation()
   const navigate = useNavigate()
-  const pageMeta = PAGE_META[location.pathname] || PAGE_META["/"]
-  const onMapPage = location.pathname === "/map"
+  const pageMeta = PAGE_META[location.pathname] || PAGE_META["/dashboard"]
+  const onKnowledgePage = location.pathname === "/knowledge"
 
   useEffect(() => {
     if (!toast) return
     const t = setTimeout(() => setToast(null), 2600)
     return () => clearTimeout(t)
   }, [toast])
+
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [location.pathname])
 
   // ── retention values with any "mark as reviewed" overrides applied ──
   const conceptsLive = useMemo(
@@ -68,14 +78,16 @@ export default function App() {
     [conceptsLive]
   )
 
+  const notifications = useMemo(() => buildNotifications(conceptsLive), [conceptsLive])
+
   // ── shared actions ──
 
-  // Used by Dashboard / Notes / Health / Subjects:
-  // select a concept and land on its node in the map.
+  // Used by Dashboard / Notes / Health / Subjects / Search:
+  // select a concept and land on its node in the knowledge web.
   const goToConcept = useCallback(
     (id) => {
       setSelectedId(id)
-      navigate("/map")
+      navigate("/knowledge")
       requestAnimationFrame(() => viewRef.current?.focusOn(id))
     },
     [navigate]
@@ -94,30 +106,46 @@ export default function App() {
     ])
   }, [])
 
+  // The landing page renders standalone, outside the app frame.
+  if (location.pathname === "/") {
+    return <LandingPage />
+  }
+
   return (
-    <div className="app">
-      <Sidebar active={location.pathname} onNavigate={(path) => navigate(path)} />
+    <div className={`app${mobileNavOpen ? " nav-open" : ""}`}>
+      {mobileNavOpen && <div className="sidebar-backdrop" onClick={() => setMobileNavOpen(false)} />}
+
+      <Sidebar
+        active={location.pathname}
+        onNavigate={(path) => {
+          navigate(path)
+          setMobileNavOpen(false)
+        }}
+      />
 
       <main className="main">
         <TopHeader
           meta={pageMeta}
-          onOpenSearch={onMapPage ? () => setSearchOpen((o) => !o) : undefined}
+          onOpenSearch={onKnowledgePage ? () => setSearchOpen((o) => !o) : undefined}
+          onToggleNav={() => setMobileNavOpen((o) => !o)}
+          notifications={notifications}
         />
 
         <Routes>
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <Dashboard
                 conceptsLive={conceptsLive}
                 conceptsLiveById={conceptsLiveById}
                 activities={activities}
+                notifications={notifications}
                 onExplore={goToConcept}
               />
             }
           />
           <Route
-            path="/map"
+            path="/knowledge"
             element={
               <KnowledgeMapPage
                 conceptsLive={conceptsLive}
@@ -142,7 +170,7 @@ export default function App() {
             }
           />
           <Route
-            path="/health"
+            path="/memory"
             element={<KnowledgeHealth conceptsLive={conceptsLive} onSelectConcept={goToConcept} />}
           />
           <Route path="/notes" element={<NotesPage conceptsLiveById={conceptsLiveById} onSelectConcept={goToConcept} />} />
@@ -154,12 +182,22 @@ export default function App() {
                 onOpenSubject={(subjectId) => {
                   setSemesterFilter("all")
                   setSubjectFilter(subjectId)
-                  navigate("/map")
+                  navigate("/knowledge")
                 }}
               />
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/search"
+            element={<SearchPage conceptsLiveById={conceptsLiveById} onExplore={goToConcept} />}
+          />
+          <Route path="/profile" element={<ProfilePage conceptsLive={conceptsLive} />} />
+
+          {/* compatibility redirects */}
+          <Route path="/map" element={<Navigate to="/knowledge" replace />} />
+          <Route path="/health" element={<Navigate to="/memory" replace />} />
+
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
 

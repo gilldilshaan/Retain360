@@ -125,3 +125,10 @@ export const SparkIcon = (p) => (
     <path d="M12 8 l4 3 l4 8 M8 18 l4 3" />
   </svg>
 )
+
+export const UserIcon = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="8.5" r="3.4" />
+    <path d="M5.5 19 c1.4 -3.2 3.8 -4.6 6.5 -4.6 s5.1 1.4 6.5 4.6" />
+  </svg>
+)
