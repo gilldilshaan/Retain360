@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="236" viewBox="0 0 880 236" font-family="Segoe UI, Helvetica, sans-serif">
+  <rect width="880" height="236" rx="16" fill="#F1E4CC"/>
+
+  <text x="115" y="36" font-size="11" letter-spacing="2.5" font-weight="700" fill="#2C2725" opacity="0.45" text-anchor="middle">SEM 1</text>
+  <text x="320" y="36" font-size="11" letter-spacing="2.5" font-weight="700" fill="#2C2725" opacity="0.45" text-anchor="middle">SEM 1</text>
+  <text x="525" y="36" font-size="11" letter-spacing="2.5" font-weight="700" fill="#2C2725" opacity="0.45" text-anchor="middle">SEM 3</text>
+  <text x="730" y="36" font-size="11" letter-spacing="2.5" font-weight="700" fill="#2C2725" opacity="0.45" text-anchor="middle">SEM 4</text>
+
+  <!-- marching-ant prerequisite edges -->
+  <g stroke="#798165" stroke-width="1.8" fill="none">
+    <line x1="196" y1="128" x2="239" y2="128" stroke-dasharray="6 6">
+      <animate attributeName="stroke-dashoffset" from="12" to="0" dur="0.8s" repeatCount="indefinite"/>
+    </line>
+    <line x1="401" y1="128" x2="444" y2="128" stroke-dasharray="6 6">
+      <animate attributeName="stroke-dashoffset" from="12" to="0" dur="0.8s" repeatCount="indefinite"/>
+    </line>
+    <line x1="606" y1="128" x2="649" y2="128" stroke-dasharray="6 6">
+      <animate attributeName="stroke-dashoffset" from="12" to="0" dur="0.8s" repeatCount="indefinite"/>
+    </line>
+  </g>
+
+  <!-- SEM 1 : Functions -->
+  <g opacity="0.85">
+    <rect x="26" y="98" width="170" height="60" rx="10" fill="#F6EFDC" stroke="#2C2725" stroke-opacity="0.28"/>
+    <circle cx="44" cy="118" r="3.4" fill="#798165"/>
+    <text x="58" y="123" font-size="13.5" font-weight="600" fill="#2C2725">Functions</text>
+    <text x="44" y="143" font-size="8.5" letter-spacing="1.2" fill="#6B645C">MATHEMATICS · 88%</text>
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="3.6s" begin="0s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- SEM 1 : Matrix Multiplication -->
+  <g opacity="0.85">
+    <rect x="231" y="98" width="170" height="60" rx="10" fill="#F6EFDC" stroke="#2C2725" stroke-opacity="0.28"/>
+    <circle cx="249" cy="118" r="3.4" fill="#C8A27A"/>
+    <text x="263" y="123" font-size="13" font-weight="600" fill="#2C2725">Matrix Multiplic…</text>
+    <text x="249" y="143" font-size="8.5" letter-spacing="1.2" fill="#6B645C">MATHEMATICS · 42%</text>
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="3.6s" begin="0.9s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- SEM 3 : Neural Networks (selected pulse) -->
+  <g opacity="1">
+    <rect x="436" y="94" width="170" height="68" rx="10" fill="#798165" stroke="#5F6750" stroke-width="1.6"/>
+    <circle cx="454" cy="116" r="3.4" fill="#F6EFDC"/>
+    <text x="468" y="121" font-size="13.5" font-weight="700" fill="#F6EFDC">Neural Networks</text>
+    <text x="454" y="141" font-size="8.5" letter-spacing="1.2" fill="#F6EFDC" opacity="0.75">ARTIFICIAL INTELLIGENCE · 81%</text>
+    <animate attributeName="opacity" values="1;0.82;1" dur="3.6s" begin="1.8s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- SEM 4 : Deep Learning -->
+  <g opacity="0.85">
+    <rect x="641" y="98" width="170" height="60" rx="10" fill="#F6EFDC" stroke="#2C2725" stroke-opacity="0.28"/>
+    <circle cx="659" cy="118" r="3.4" fill="#5F6750"/>
+    <text x="673" y="123" font-size="13.5" font-weight="600" fill="#2C2725">Deep Learning</text>
+    <text x="659" y="143" font-size="8.5" letter-spacing="1.2" fill="#6B645C">ADVANCED TOPICS · 70%</text>
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="3.6s" begin="2.7s" repeatCount="indefinite"/>
+  </g>
+
+  <text x="440" y="205" font-size="12.5" font-style="italic" fill="#2C2725" opacity="0.62" text-anchor="middle">Select Neural Networks — its entire lineage lights up across semesters</text>
+</svg>
