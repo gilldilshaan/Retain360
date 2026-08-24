@@ -1,0 +1,19 @@
+/* src/App.css
+   Global application-level styling.
+   The detailed Memory Center design lives in Memory.css.
+*/
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
