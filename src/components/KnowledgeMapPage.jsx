@@ -5,6 +5,7 @@ import KnowledgeGraph from "./KnowledgeGraph.jsx"
 import ConceptInspector from "./ConceptInspector.jsx"
 import SearchConcepts from "./SearchConcepts.jsx"
 import Legend from "./Legend.jsx"
+import GraphHealth from "./GraphHealth.jsx"
 
 import { concepts } from "../data/concepts.js"
 import { connections } from "../data/connections.js"
@@ -101,12 +102,17 @@ export default function KnowledgeMapPage({
         connectionCount={connectionCount}
       />
 
+      <GraphHealth conceptsLive={conceptsLive} />
+
       <div className="workspace">
         <div className="graph-wrap">
           {visibleConcepts.length === 0 ? (
             <div className="graph-empty">
+              <svg width="40" height="32" viewBox="0 0 40 32" aria-hidden="true" style={{ color: "var(--ink-soft)" }}>
+                <path fill="none" stroke="var(--ink-soft)" strokeWidth={1.5} d="M4 2 h32 M4 16 h32 M4 30 h16 M8 6 q8 12 q8 -12 M16 30 q0 -8 q8 0 q8 -8 M24 6 q8 12 q8 -12 M32 16 v8 M32 24 v8" />
+              </svg>
               <h3 className="serif">No concepts match these filters.</h3>
-              <p>Try changing your semester or subject.</p>
+              <p>Showing <span className="micro">{visibleConcepts.length} of {conceptsLive.length}</span> concepts</p>
               <button type="button" className="btn btn-quiet" onClick={resetFilters}>
                 Reset Filters
               </button>

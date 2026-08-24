@@ -1,34 +1,368 @@
-/* == knowledge health page == */
-/* ── knowledge health ── */
-.page-section-title { margin: 8px 0 0; font-size: 19px; font-weight: 400; }
+/* == memory page · knowledge health experience == */
 
-.health-list {
+/* ── contextual lead under the header ── */
+.mem-lead {
+  margin: 0;
+  max-width: 640px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ── page grid: two-column rhythm on desktop ── */
+.mem-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+.mem-health { grid-column: span 7; }
+.mem-subjects { grid-column: span 5; }
+.mem-fading { grid-column: span 7; }
+.mem-focus { grid-column: span 5; }
+.mem-recommended { grid-column: span 7; }
+.mem-side {
+  grid-column: span 5;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* shared section headers (non-card sections sit straight on the paper) */
+.mem-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
+}
+.mem-section-hint { font-size: 11px; color: var(--ink-soft); }
+.mem-section-foot { margin: 10px 0 0; font-size: 11px; color: var(--ink-soft); }
+
+.panel-card.mem-fading { gap: 4px; }
+.mem-panel-head {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.mem-panel-head h3 { margin: 0; font-size: 19px; }
+
+/* ── thin meters used everywhere on this page ── */
+.mem-meter {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(44, 39, 37, 0.12);
+  overflow: hidden;
+  min-width: 60px;
+}
+.mem-meter > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
+  background: var(--sage-deep);
+  transition: width var(--fast) var(--ease);
+}
+.mem-meter.low > span { background: #a97b4f; }
+
+/* ═══ 1 · overall health ════════════════════════════════ */
+.mem-health { gap: 6px; }
+.mem-health-value {
+  font-size: clamp(46px, 5.4vw, 64px);
+  line-height: 1;
+  margin-top: 4px;
+}
+.mem-health-sub { font-size: 12.5px; color: var(--ink-soft); }
+
+.mem-health-scale { position: relative; width: 100%; margin: 12px 0 4px; }
+.mem-health-scale .mem-meter { height: 10px; }
+.mem-tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--line-strong);
+}
+.mem-tick::after {
+  content: attr(data-label);
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--ink-soft);
+}
+
+.mem-health-note { margin: 14px 0 2px; font-size: 13px; line-height: 1.55; color: var(--charcoal); }
+
+.mem-health-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.mem-health-stats > div { display: flex; flex-direction: column; gap: 1px; }
+.mem-hstat-value { font-size: 24px; line-height: 1; }
+.mem-hstat-label { font-size: 10px; font-weight: 650; letter-spacing: 0.09em; text-transform: uppercase; }
+.mem-hstat-range { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); }
+
+/* ═══ 2 · knowledge by subject ═════════════════════════ */
+.mem-subject-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  max-width: 760px;
 }
-.health-row {
+.mem-subject-row {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: minmax(120px, 150px) 1fr 44px;
   align-items: center;
-  gap: 22px;
+  gap: 14px;
   width: 100%;
   text-align: left;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--line);
+  transition: background var(--fast) var(--ease);
+}
+.mem-subject-list li:last-child .mem-subject-row { border-bottom: none; }
+.mem-subject-row:hover { background: rgba(121, 129, 101, 0.08); }
+.mem-subject-name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+.mem-subject-count { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--ink-soft); }
+.mem-subject-pct { font-size: 15px; text-align: right; }
+
+/* ═══ 3 · concepts losing strength ═════════════════════ */
+.mem-fade-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.mem-fade-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 13px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.mem-fade-list li:last-child .mem-fade-row { border-bottom: none; padding-bottom: 4px; }
+
+.mem-fade-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mem-fade-name {
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--charcoal);
+  text-align: left;
+  transition: color var(--fast) var(--ease);
+}
+.mem-fade-name:hover { color: var(--sage-deep); text-decoration: underline; text-underline-offset: 3px; }
+.mem-fade-side { display: inline-flex; align-items: center; gap: 9px; flex: none; }
+.mem-fade-pct { font-size: 17px; }
+
+.mem-fade-meta {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.mem-fade-bottom {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+.mem-btn-sm { padding: 6px 13px; font-size: 12px; }
+
+/* ═══ 4 · why this matters ═════════════════════════════ */
+.mem-focus {
+  grid-column: span 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--charcoal);
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 22px;
+}
+.mem-focus-label { color: rgba(241, 228, 204, 0.65); }
+.mem-focus-name { margin: 0; font-size: 24px; line-height: 1.15; }
+.mem-focus-ret { margin: 0; font-size: 12px; color: rgba(241, 228, 204, 0.75); }
+.mem-focus-ret strong { font-family: var(--serif); font-size: 17px; color: var(--paper); }
+.mem-focus-copy { margin: 4px 0 0; font-size: 12.5px; color: rgba(241, 228, 204, 0.75); }
+.mem-focus-uses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.mem-focus-uses button {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--paper);
+  border: 1px solid rgba(241, 228, 204, 0.35);
+  border-radius: 999px;
+  padding: 5px 12px;
+  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+.mem-focus-uses button:hover { background: rgba(241, 228, 204, 0.12); border-color: rgba(241, 228, 204, 0.6); }
+.mem-focus-note { margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: rgba(241, 228, 204, 0.85); }
+.mem-focus-actions { display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.mem-ghost {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--paper);
+  border: 1px solid rgba(241, 228, 204, 0.4);
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  transition: background var(--fast) var(--ease);
+}
+.mem-ghost:hover { background: rgba(241, 228, 204, 0.12); }
+
+/* ═══ 5 · recommended reviews ══════════════════════════ */
+.mem-rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+.mem-rec-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sage);
+  border-radius: var(--r-sm);
+  padding: 14px 15px;
+}
+.mem-rec-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mem-rec-top h4 { margin: 0; font-size: 16px; line-height: 1.2; }
+.mem-rec-pct { font-size: 16px; color: #a97b4f; }
+.mem-rec-meta { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-soft); }
+.mem-rec-why { margin: 4px 0 8px; font-size: 12px; line-height: 1.45; color: var(--charcoal); }
+.mem-rec-why .micro { display: block; margin-bottom: 2px; }
+.mem-rec-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.mem-link { font-size: 12px; font-weight: 600; color: var(--sage-deep); }
+.mem-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ═══ 6 · retention trend ══════════════════════════════ */
+.mem-trend,
+.mem-revision {
   background: var(--paper-soft);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: 13px 17px;
-  transition: border-color var(--fast) var(--ease);
+  padding: 16px 18px;
 }
-.health-row:hover { border-color: var(--sage); }
-.health-name { display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; font-weight: 600; color: var(--charcoal); }
-.health-meta { font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
-.health-bar .retention-head .micro,
-.health-bar .retention-word { display: none; }
-.health-bar .retention-value { font-size: 15px; }
+.mem-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  height: 128px;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--line-strong);
+}
+.mem-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+}
+.mem-col-val { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); }
+.mem-col-bar {
+  width: 100%;
+  max-width: 44px;
+  border-radius: 4px 4px 0 0;
+  background: rgba(121, 129, 101, 0.55);
+  transition: height var(--fast) var(--ease);
+}
+.mem-col-bar.now { background: var(--sage-deep); }
+.mem-chart-labels { display: flex; gap: 18px; padding: 6px 6px 0; }
+.mem-chart-labels span {
+  flex: 1;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.mem-trend-note { margin: 10px 0 0; font-size: 10.5px; color: var(--ink-soft); }
 
+/* ═══ 7 · recent revision ══════════════════════════════ */
+.mem-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.mem-review-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.mem-review-list li:last-child { border-bottom: none; padding-bottom: 0; }
+.mem-check { color: var(--sage-deep); font-weight: 700; width: 14px; flex: none; }
+.mem-review-name { font-weight: 550; }
+.mem-review-when {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
 
+/* ═══ responsive ═══════════════════════════════════════ */
+@media (max-width: 1080px) {
+  .mem-grid > * { grid-column: span 12; }
+  .mem-side { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
+}
+
+@media (max-width: 720px) {
+  .mem-lead { font-size: 12.5px; }
+  .mem-subject-row { grid-template-columns: minmax(96px, 1fr) 1fr 40px; gap: 10px; }
+  .mem-fade-top { flex-wrap: wrap; }
+  .mem-chart { gap: 10px; }
+  .mem-chart-labels { gap: 10px; }
+  .mem-col-val { font-size: 9px; }
+  .mem-focus { padding: 18px; }
+}

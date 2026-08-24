@@ -283,7 +283,7 @@ function GraphNode({ concept, pos, order, selected, highlighted, dimmed, onSelec
       }}
       onClick={(e) => {
         e.stopPropagation()
-        onSelect()
+        onSelect(concept.id)
       }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}

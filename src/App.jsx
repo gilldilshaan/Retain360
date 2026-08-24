@@ -21,7 +21,6 @@ const PAGE_META = {
   "/memory": { eyebrow: "My Knowledge", title: "Memory", sub: "What you remember — and what's fading." },
   "/notes": { eyebrow: "My Library", title: "My Notes", sub: "Everything you've written, searchable." },
   "/subjects": { eyebrow: "My Knowledge", title: "Subjects", sub: "Courses across all four years." },
-  "/notes": { eyebrow: "My Library", title: "My Notes", sub: "Every note, one search away." },
   "/profile": { eyebrow: "Account", title: "Profile", sub: "Your academic snapshot at a glance." },
 }
 
@@ -170,7 +169,19 @@ export default function App() {
           />
           <Route
             path="/memory"
-            element={<KnowledgeHealth conceptsLive={conceptsLive} onSelectConcept={goToConcept} />}
+            element={
+              <KnowledgeHealth
+                conceptsLive={conceptsLive}
+                activities={activities}
+                onSelectConcept={goToConcept}
+                onRefresh={setRefreshId}
+                onOpenSubject={(subjectId) => {
+                  setSemesterFilter("all")
+                  setSubjectFilter(subjectId)
+                  navigate("/knowledge")
+                }}
+              />
+            }
           />
           <Route path="/notes" element={<NotesPage />} />
           <Route
