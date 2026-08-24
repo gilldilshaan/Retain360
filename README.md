@@ -67,13 +67,13 @@ This is the exact flow to run in an evaluation. Every step is real state, not a 
 
 ```mermaid
 flowchart LR
-    A["Dashboard\nExplore Connection"] --> B["Knowledge Map\nNeural Networks selected"]
-    B --> C["Prerequisite chain\nlights up"]
-    C --> D["Inspector:\nBuilt On + Debt 42%"]
-    D --> E["Click Matrix\nMultiplication"]
-    E --> F["Quick Refresh\nmodal + 2×2 example"]
-    F --> G["Mark as Reviewed\n42% → 56%"]
-    G --> H["Debt disappears\ntoast + lineage"]
+    A["Dashboard<br/>Explore Connection"] --> B["Knowledge Map<br/>Neural Networks selected"]
+    B --> C["Prerequisite chain<br/>lights up"]
+    C --> D["Inspector:<br/>Built On + Debt 42%"]
+    D --> E["Click Matrix<br/>Multiplication"]
+    E --> F["Quick Refresh<br/>modal + 2×2 example"]
+    F --> G["Mark as Reviewed<br/>42% → 56%"]
+    G --> H["Debt disappears<br/>toast + lineage"]
 ```
 
 | Step | You do | React does |
@@ -375,8 +375,9 @@ gitGraph
     branch dev
     checkout dev
     commit id: "flagship map"
-    commit id: "dashboard + router"
-    main --> dev
+    commit id: "notes + dashboard v2"
+    checkout main
+    merge dev id: "release"
 ```
 
 ```bash
