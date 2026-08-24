@@ -13,6 +13,7 @@
 [![Router](https://img.shields.io/badge/React_Router-7-2C2725?style=flat-square&logo=reactrouter&logoColor=F1E4CC)](https://reactrouter.com)
 [![State](https://img.shields.io/badge/state-useState_only-798165?style=flat-square)](#the-state-model)
 [![Backend](https://img.shields.io/badge/backend-none_–_mock_data-2C2725?style=flat-square)](#the-data-layer)
+[![License](https://img.shields.io/badge/license-MIT-798165?style=flat-square)](LICENSE)
 
 </div>
 
