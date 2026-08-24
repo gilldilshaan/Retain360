@@ -1,0 +1,103 @@
+import React, { useMemo, useState } from "react"
+import { subjectOf } from "../../data/subjects.js"
+import "../../styles/memory-insights.css"
+
+const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, Number(value) || 0))
+
+export default function MemoryInsights({ conceptsLive = [], activities = [], onSelectConcept, onRefresh, onAdjustRetention }) {
+  const [strongAt, setStrongAt] = useState(75)
+  const [fadingAt, setFadingAt] = useState(55)
+  const [subject, setSubject] = useState("all")
+  const [sort, setSort] = useState("retention-low")
+  const [controls, setControls] = useState(false)
+  const [showAll, setShowAll] = useState(false)
+
+  const subjects = useMemo(() => [...new Set(conceptsLive.map(c => c.subject))], [conceptsLive])
+
+  const visibleConcepts = useMemo(() => {
+    let list = subject === "all" ? [...conceptsLive] : conceptsLive.filter(c => c.subject === subject)
+    if (sort === "retention-low") list.sort((a, b) => a.retention - b.retention)
+    if (sort === "retention-high") list.sort((a, b) => b.retention - a.retention)
+    if (sort === "dependencies") list.sort((a, b) => (b.usedIn || []).length - (a.usedIn || []).length)
+    if (sort === "name") list.sort((a, b) => a.name.localeCompare(b.name))
+    return list
+  }, [conceptsLive, subject, sort])
+
+  const distribution = useMemo(() => {
+    const total = visibleConcepts.length || 1
+    const strong = visibleConcepts.filter(c => c.retention >= strongAt).length
+    const steady = visibleConcepts.filter(c => c.retention >= fadingAt && c.retention < strongAt).length
+    const fading = visibleConcepts.filter(c => c.retention < fadingAt).length
+    return {
+      strong: Math.round(strong / total * 100),
+      steady: Math.round(steady / total * 100),
+      fading: Math.round(fading / total * 100),
+    }
+  }, [visibleConcepts, strongAt, fadingAt])
+
+  const priority = visibleConcepts
+    .filter(c => c.retention < strongAt)
+    .sort((a, b) => a.retention - b.retention || (b.usedIn || []).length - (a.usedIn || []).length)
+    .slice(0, showAll ? 12 : 4)
+
+  const reviewed = activities.filter(a => String(a.text || "").startsWith("Reviewed")).length
+  const goal = Math.max(5, Math.min(10, Math.ceil(visibleConcepts.length * 0.25)))
+  const progress = Math.min(100, Math.round(reviewed / goal * 100))
+
+  return (
+    <section className="mi-container">
+      <header className="mi-header">
+        <div>
+          <span className="mi-eyebrow">Interactive Memory Lab</span>
+          <h2 className="mi-title">Control and improve your memory</h2>
+          <p className="mi-description">These controls change the live Retain360 memory state and the insights recalculate immediately.</p>
+        </div>
+        <button type="button" className="mi-control-button" onClick={() => setControls(v => !v)}>{controls ? "Hide Controls" : "Open Controls"}</button>
+      </header>
+
+      {controls && (
+        <section className="mi-controls">
+          <label className="mi-control">Strong threshold <b>{strongAt}%</b><input type="range" min="56" max="95" value={strongAt} onChange={e => setStrongAt(Math.max(fadingAt + 1, Number(e.target.value)))} /></label>
+          <label className="mi-control">Fading threshold <b>{fadingAt}%</b><input type="range" min="10" max={strongAt - 1} value={fadingAt} onChange={e => setFadingAt(Math.min(strongAt - 1, Number(e.target.value)))} /></label>
+          <label className="mi-control">Subject<select value={subject} onChange={e => setSubject(e.target.value)}><option value="all">All subjects</option>{subjects.map(id => <option key={id} value={id}>{subjectOf(id)}</option>)}</select></label>
+          <label className="mi-control">Sort<select value={sort} onChange={e => setSort(e.target.value)}><option value="retention-low">Lowest retention</option><option value="retention-high">Highest retention</option><option value="dependencies">Most dependencies</option><option value="name">Name</option></select></label>
+        </section>
+      )}
+
+      <div className="mi-top-grid">
+        <article className="mi-card">
+          <div className="mi-card-header"><span className="mi-eyebrow">Memory Distribution</span><span className="mi-muted">{visibleConcepts.length} concepts</span></div>
+          {[['Strong', distribution.strong, 'mi-dot-strong'], ['Steady', distribution.steady, 'mi-dot-steady'], ['Fading', distribution.fading, 'mi-dot-fading']].map(([name, value, dot]) => <div className="mi-distribution-row" key={name}><span className="mi-distribution-name"><i className={`mi-dot ${dot}`} />{name}</span><div className="mi-progress"><span style={{ width: `${value}%` }} /></div><strong>{value}%</strong></div>)}
+        </article>
+        <article className="mi-card">
+          <div className="mi-card-header"><span className="mi-eyebrow">Live Review Progress</span><strong>{reviewed}/{goal}</strong></div>
+          <div className="mi-goal-number">{progress}%</div>
+          <div className="mi-progress"><span style={{ width: `${progress}%` }} /></div>
+          <p className="mi-card-text">{reviewed >= goal ? "Review goal reached." : `${goal - reviewed} review${goal - reviewed === 1 ? "" : "s"} remaining.`}</p>
+        </article>
+      </div>
+
+      <section className="mi-section">
+        <div className="mi-section-header"><div><span className="mi-eyebrow">Interactive Concept Controls</span><h3 className="mi-section-title">Change retention</h3></div><span className="mi-muted">Updates the whole app</span></div>
+        <div className="mi-concept-list">
+          {visibleConcepts.slice(0, showAll ? 30 : 8).map(c => <article className="mi-concept-row" key={c.id}>
+            <div><button type="button" className="mi-concept-name" onClick={() => onSelectConcept?.(c.id)}>{c.name}</button><span className="mi-meta">{subjectOf(c.subject)} · {c.retention}%</span></div>
+            <input className="mi-retention-slider" type="range" min="0" max="100" value={c.retention} onChange={e => onAdjustRetention?.(c.id, Number(e.target.value))} />
+            <strong className="mi-retention-value">{c.retention}%</strong>
+            <button type="button" className="btn btn-quiet mi-review" onClick={() => onRefresh?.(c.id)}>Review</button>
+          </article>)}
+        </div>
+        {visibleConcepts.length > 8 && <button type="button" className="mi-show-more" onClick={() => setShowAll(v => !v)}>{showAll ? "Show less ↑" : `Show all ${visibleConcepts.length} concepts →`}</button>}
+      </section>
+
+      <section className="mi-section">
+        <div className="mi-section-header"><div><span className="mi-eyebrow">Review Priority</span><h3 className="mi-section-title">What needs attention first</h3></div></div>
+        <div className="mi-priority-grid">
+          {priority.length ? priority.map(c => <article className="mi-priority-card" key={c.id}>
+            <h4>{c.name}</h4><span className="mi-meta">{subjectOf(c.subject)} · {c.retention}%</span><div className="mi-progress"><span style={{ width: `${c.retention}%` }} /></div><p>{(c.usedIn || []).length} dependent concept{(c.usedIn || []).length === 1 ? "" : "s"}</p><div className="mi-actions"><button type="button" className="btn btn-quiet" onClick={() => onRefresh?.(c.id)}>Review</button><button type="button" className="mi-map-button" onClick={() => onSelectConcept?.(c.id)}>View Map →</button></div>
+          </article>) : <div className="mi-empty">Nothing needs attention under the current thresholds.</div>}
+        </div>
+      </section>
+    </section>
+  )
+}
