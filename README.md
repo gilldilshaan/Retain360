@@ -202,6 +202,23 @@ visibleConcepts   ← conceptsLive filtered by sem+subject (useMemo)
 visibleConnections← edges whose BOTH endpoints are visible
 ```
 
+### Styling
+
+One stylesheet per surface, imported once in `main.jsx` in cascade order.
+Every Notes-library rule is scoped under `.nlib`, so it can never leak into the app shell.
+
+| File | Owns |
+|---|---|
+| [`global.css`](src/styles/global.css) | design tokens, fonts, resets, focus rings, grain |
+| [`shell.css`](src/styles/shell.css) | app frame, sidebar, top header, buttons, modal, toast |
+| [`knowledge.css`](src/styles/knowledge.css) | graph toolbar, canvas, nodes, edges, inspector, ⌘K overlay |
+| [`dashboard.css`](src/styles/dashboard.css) | dashboard hero, stat cards, focus panel |
+| [`memory.css`](src/styles/memory.css) | Knowledge Health page |
+| [`subjects.css`](src/styles/subjects.css) | Subjects page |
+| [`notes.css`](src/styles/notes.css) | Notes library (teammate UI) |
+| [`landing.css`](src/styles/landing.css) | marketing landing page |
+| [`profile.css`](src/styles/profile.css) | Profile page + dropdown menu |
+
 ---
 
 ## The Data Layer

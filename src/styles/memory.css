@@ -1,0 +1,34 @@
+/* == knowledge health page == */
+/* ── knowledge health ── */
+.page-section-title { margin: 8px 0 0; font-size: 19px; font-weight: 400; }
+
+.health-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-width: 760px;
+}
+.health-row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  align-items: center;
+  gap: 22px;
+  width: 100%;
+  text-align: left;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 13px 17px;
+  transition: border-color var(--fast) var(--ease);
+}
+.health-row:hover { border-color: var(--sage); }
+.health-name { display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; font-weight: 600; color: var(--charcoal); }
+.health-meta { font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+.health-bar .retention-head .micro,
+.health-bar .retention-word { display: none; }
+.health-bar .retention-value { font-size: 15px; }
+
+
