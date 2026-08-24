@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/knowledge-chain.svg" alt="KINSHIP — a concept chain lighting up across semesters" width="880"/>
+<img src="docs/knowledge-chain.svg" alt="Retain360 — a concept chain lighting up across semesters" width="880"/>
 
-# KINSHIP
+# Retain360
 
 **ACADEMIC KNOWLEDGE WEB**
 
@@ -38,13 +38,13 @@
 
 ## The Idea
 
-Universities teach in isolated semester boxes. KINSHIP draws the lines between the boxes:
+Universities teach in isolated semester boxes. Retain360 draws the lines between the boxes:
 
 > **Matrices** (Sem 1) → **Matrix Multiplication** (Sem 1) → **Neural Networks** (Sem 3) → **Deep Learning** (Sem 4)
 >
 > Four concepts. Three semesters. One chain of knowledge.
 
-When you select a concept, KINSHIP lights up everything it was *built on* and everything it will be *used in* — and shows you which prerequisites are fading from memory.
+When you select a concept, Retain360 lights up everything it was *built on* and everything it will be *used in* — and shows you which prerequisites are fading from memory.
 
 ---
 
@@ -78,8 +78,9 @@ flowchart LR
 
 | Step | You do | React does |
 |:---:|---|---|
-| 1 | Open Dashboard | stats computed with `useMemo` from mock data |
-| 2 | Click **Explore Connection →** | `goToConcept()` sets `selectedId` + navigates |
+| 0 | Land on the marketing page | scroll-reveals fire via one IntersectionObserver |
+| 1 | Click **Launch Map** or **Open App** | `navigate()` into the app shell |
+| 2 | On Dashboard, click **Explore Connection →** | `goToConcept()` sets `selectedId` + navigates |
 | 3 | Map opens | graph pans to the node via `viewRef.focusOn()` |
 | 4 | Watch the graph | unrelated nodes dim, two chains glow |
 | 5 | Read inspector | **Built On**: MM · Derivatives · Functions · Probability |
@@ -104,7 +105,8 @@ flowchart LR
 | Reset Filters | one click back to defaults | plain setter calls |
 | Quick Refresh modal | review a fading concept | Escape key + backdrop close |
 | Retention update | Mark as Reviewed | `42% → 56%`, debt auto-clears |
-| Cross-page deep links | Dashboard / Notes / Health cards | `goToConcept(id)` |
+| Cross-page deep links | Dashboard / Notes / Health / Subjects cards | `goToConcept(id)` |
+| Scroll reveals | Landing page sections | IntersectionObserver + `.in` class |
 
 <details>
 <summary><b>Why is the highlight "transitive"?</b></summary>
@@ -145,14 +147,15 @@ graph TD
     APP -->|"page meta"| TH["TopHeader"]
 
     subgraph pages ["Routes (react-router-dom v7)"]
-      D["Dashboard /"]
-      M["KnowledgeMapPage /map"]
+      L["LandingPage /"]
+      D["Dashboard /dashboard"]
+      M["KnowledgeMapPage /knowledge"]
       H["KnowledgeHealth /health"]
       N["NotesPage /notes"]
       S["SubjectsPage /subjects"]
     end
 
-    APP --> D & M & H & N & S
+    APP --> L & D & M & H & N & S
 
     M --> GT["GraphToolbar"]
     M --> KG["KnowledgeGraph"]
@@ -269,6 +272,16 @@ Opens for any concept. Shows a worked 2×2 matrix example for Matrix Multiplicat
 </details>
 
 <details>
+<summary><b>LandingPage</b> — the premium front door</summary>
+
+Floating pill nav, editorial hero with the animated chain graphic, a stats band computed
+from mock data, an asymmetric bento of product features, a 3-step workflow, and a sage
+thesis band. Scroll-reveals run on one small IntersectionObserver that adds <code>.in</code>
+to <code>[data-reveal]</code> elements — the CSS handles the rest. Renders standalone at
+<code>/</code>, outside the app frame.
+</details>
+
+<details>
 <summary><b>The other pages</b></summary>
 
 - <b>Dashboard</b> — hero, 3 stat cards (computed), Continue Learning, Needs Attention, Recent Activity
@@ -289,9 +302,10 @@ Warm parchment, sage ink, charcoal type. No blues, no gradients, no neon.
 | ▉ | `#798165` | accents, selected states, edges, buttons |
 | ▉ | `#2C2725` | headings, body text, borders, icons |
 
-Typography pairs **Libre Baskerville** (editorial headings) with **Inter** (UI).
-Micro-labels are uppercase with wide letter-spacing. Radii stay between 8–16px;
-animations live in the 150–250ms band.
+Typography pairs **DM Serif Display** (editorial headings) with **IBM Plex Sans** (UI)
+and **IBM Plex Mono** (metadata, labels, numbers). Cards read as paper documents —
+thick borders, folded top-right corner, a slight lift-and-tilt on hover.
+Micro-labels are mono uppercase with wide letter-spacing.
 
 ---
 
@@ -381,6 +395,7 @@ self-clears → Dashboard activity list grows. Six re-renders from one setState 
 - [x] Concept inspector with lineage + debt detection
 - [x] Quick Refresh loop with visible state change
 - [x] Router + Dashboard + Notes + Health + Subjects
+- [x] Premium SaaS landing page with scroll reveals
 - [x] Responsive layout (desktop-first)
 - [ ] Spaced-repetition scheduling on top of `retentionOverrides`
 - [ ] Per-student data files for team demos

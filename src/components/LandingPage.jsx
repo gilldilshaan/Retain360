@@ -73,16 +73,15 @@ export default function LandingPage() {
           shouldn&rsquo;t disappear <em>by 4th.</em>
         </h1>
         <p className="hero-sub" data-reveal>
-          Retain360 connects every concept across your degree — so Matrices from semester one
-          light the path to Deep Learning in semester four, and you always know what to revise next.
+          Every concept in your degree, connected on one map. From first-year Matrices to final-year Deep Learning.
         </p>
         <div className="hero-ctas" data-reveal>
-          <button type="button" className="btn btn-primary btn-lg" onClick={() => navigate("/dashboard")}>
-            Enter Retain360<span className="btn-orb">→</span>
+          <button type="button" className="btn btn-primary btn-lg" onClick={() => navigate("/knowledge")}>
+            Launch Map<span className="btn-orb">→</span>
           </button>
-          <button type="button" className="btn btn-outline btn-lg" onClick={() => navigate("/knowledge")}>
-            Explore the live map
-          </button>
+          <a className="btn btn-outline btn-lg" href="#workflow">
+            See how it works
+          </a>
         </div>
 
         <figure className="hero-demo" data-reveal>
@@ -102,7 +101,6 @@ export default function LandingPage() {
 
       {/* ── product bento ── */}
       <section id="product" className="feature-head" data-reveal>
-        <span className="micro section-label">The Product</span>
         <h2 className="section-title serif">One map for everything you&rsquo;ve learned</h2>
       </section>
 
@@ -116,7 +114,7 @@ export default function LandingPage() {
           </p>
         </article>
 
-        <article className="bento-card span-5" data-reveal>
+        <article className="bento-card span-5 tinted" data-reveal>
           <span className="micro section-label">Signature</span>
           <h3 className="serif">Knowledge Lineage</h3>
           <div className="lineage-mini" aria-hidden="true">
@@ -174,7 +172,6 @@ export default function LandingPage() {
 
       {/* ── workflow ── */}
       <section id="workflow" className="feature-head" data-reveal>
-        <span className="micro section-label">Workflow</span>
         <h2 className="section-title serif">Three steps, every study session</h2>
       </section>
 
@@ -203,7 +200,7 @@ export default function LandingPage() {
         </p>
         <p className="thesis-sub">Retain360 just draws the lines.</p>
         <button type="button" className="btn btn-primary btn-lg" onClick={() => navigate("/dashboard")}>
-          Start exploring<span className="btn-orb">→</span>
+          Open App<span className="btn-orb">→</span>
         </button>
       </section>
 

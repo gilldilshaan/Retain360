@@ -34,7 +34,7 @@ export default function ProfilePage({ conceptsLive }) {
           {profile.initials}
         </span>
         <div>
-          <span className="micro">KINSHIP Profile</span>
+          <span className="micro">RETAIN360 Profile</span>
           <h2 className="profile-name serif">{profile.name}</h2>
           <div className="profile-meta">
             <span className="profile-tag">{profile.degree}</span>

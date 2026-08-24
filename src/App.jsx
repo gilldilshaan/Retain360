@@ -10,7 +10,6 @@ import KnowledgeHealth from "./components/KnowledgeHealth.jsx"
 import SubjectsPage from "./components/SubjectsPage.jsx"
 import RefreshModal from "./components/RefreshModal.jsx"
 import LandingPage from "./components/LandingPage.jsx"
-import SearchPage from "./components/SearchPage.jsx"
 import ProfilePage from "./components/ProfilePage.jsx"
 import { buildNotifications } from "./components/dashboard/NotificationsPanel.jsx"
 
@@ -22,7 +21,7 @@ const PAGE_META = {
   "/memory": { eyebrow: "My Knowledge", title: "Memory", sub: "What you remember — and what's fading." },
   "/notes": { eyebrow: "My Library", title: "My Notes", sub: "Everything you've written, searchable." },
   "/subjects": { eyebrow: "My Knowledge", title: "Subjects", sub: "Courses across all four years." },
-  "/search": { eyebrow: "My Library", title: "Search & Notes", sub: "Find any concept or note across your degree." },
+  "/notes": { eyebrow: "My Library", title: "My Notes", sub: "Every note, one search away." },
   "/profile": { eyebrow: "Account", title: "Profile", sub: "Your academic snapshot at a glance." },
 }
 
@@ -173,7 +172,7 @@ export default function App() {
             path="/memory"
             element={<KnowledgeHealth conceptsLive={conceptsLive} onSelectConcept={goToConcept} />}
           />
-          <Route path="/notes" element={<NotesPage conceptsLiveById={conceptsLiveById} onSelectConcept={goToConcept} />} />
+          <Route path="/notes" element={<NotesPage />} />
           <Route
             path="/subjects"
             element={
@@ -187,15 +186,12 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/search"
-            element={<SearchPage conceptsLiveById={conceptsLiveById} onExplore={goToConcept} />}
-          />
           <Route path="/profile" element={<ProfilePage conceptsLive={conceptsLive} />} />
 
           {/* compatibility redirects */}
           <Route path="/map" element={<Navigate to="/knowledge" replace />} />
           <Route path="/health" element={<Navigate to="/memory" replace />} />
+          <Route path="/search" element={<Navigate to="/notes" replace />} />
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

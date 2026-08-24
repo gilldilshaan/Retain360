@@ -1,6 +1,6 @@
 export const profile = {
-  name: "Bani",
-  initials: "B",
+  name: "Dilshaan Singh Gill",
+  initials: "DG",
   degree: "B.Tech CSE — AI & ML",
   semester: 3,
 }

@@ -1,101 +1,163 @@
-import React, { useMemo, useState } from "react"
-import { notes } from "../data/notes.js"
-import { concepts } from "../data/concepts.js"
-import { semesters, subjectOf } from "../data/subjects.js"
+import React, { useState } from "react"
 
-// Search over your own notes. Plain filter() + map() — the results update
-// as you type because query is controlled state.
-export default function NotesPage({ conceptsLiveById, onSelectConcept }) {
+import NotesHeader from "./notes/NotesHeader.jsx"
+import FilterBar from "./notes/FilterBar.jsx"
+import NotesGrid from "./notes/NotesGrid.jsx"
+import EmptyState from "./notes/EmptyState.jsx"
+import NoteDrawer from "./notes/NoteDrawer.jsx"
+
+import { NOTES, SUBJECTS, SEMESTERS, FILE_TYPES } from "../data/noteLibrary.js"
+
+// The My Notes page — teammate's library UI running inside Retain360.
+// All state is local here; data comes from src/data/noteLibrary.js so it
+// can later be swapped for an API without touching the components.
+export default function NotesPage() {
   const [query, setQuery] = useState("")
-  const [semester, setSemester] = useState("all")
-  const [subject, setSubject] = useState("all")
-  const [type, setType] = useState("all")
+  const [subjectFilter, setSubjectFilter] = useState("All")
+  const [semesterFilter, setSemesterFilter] = useState("All")
+  const [typeFilter, setTypeFilter] = useState("All")
+  const [pinnedOnly, setPinnedOnly] = useState(false)
+  const [pinnedIds, setPinnedIds] = useState([1, 6])
+  const [recentSearches, setRecentSearches] = useState(["matrix", "gradient descent", "eigenvalues"])
 
-  // subjects that actually appear in the notes data
-  const noteSubjects = useMemo(
-    () => [...new Set(notes.map((n) => concepts.find((c) => c.id === n.conceptId)?.subject).filter(Boolean))],
-    []
-  )
+  const [selectedId, setSelectedId] = useState(null)
+  const [visibleNotes, setVisibleNotes] = useState(8)
 
-  const results = useMemo(
-    () =>
-      notes.filter((n) => {
-        const concept = conceptsLiveById[n.conceptId]
-        if (!concept) return false
-        if (query.trim() && !n.title.toLowerCase().includes(query.trim().toLowerCase())) return false
-        if (semester !== "all" && String(concept.semester) !== String(semester)) return false
-        if (subject !== "all" && concept.subject !== subject) return false
-        if (type !== "all" && n.type !== type) return false
-        return true
-      }),
-    [query, semester, subject, type, conceptsLiveById]
-  )
+  // pin / unpin
+  const togglePin = (id) => {
+    setPinnedIds((previous) => {
+      if (previous.includes(id)) {
+        return previous.filter((item) => item !== id)
+      }
+      return [...previous, id]
+    })
+  }
+
+  const openNote = (note) => setSelectedId(note.id)
+
+  // recent searches
+  const handleSearch = () => {
+    const term = query.trim()
+    if (term && !recentSearches.some((search) => search.toLowerCase() === term.toLowerCase())) {
+      setRecentSearches([term, ...recentSearches])
+    }
+  }
+
+  // filtering
+  const searchText = query.trim().toLowerCase()
+
+  const filteredNotes = NOTES.filter((note) => {
+    let matchesSearch = true
+
+    if (searchText !== "") {
+      matchesSearch =
+        note.title.toLowerCase().includes(searchText) ||
+        note.subject.toLowerCase().includes(searchText)
+
+      if (!matchesSearch) {
+        for (let tag of note.tags) {
+          if (tag.toLowerCase().includes(searchText)) {
+            matchesSearch = true
+            break
+          }
+        }
+      }
+    }
+
+    let matchesSubject = true
+    if (subjectFilter !== "All") matchesSubject = note.subject === subjectFilter
+
+    let matchesSemester = true
+    if (semesterFilter !== "All") matchesSemester = note.semester === semesterFilter
+
+    let matchesType = true
+    if (typeFilter !== "All") matchesType = note.type === typeFilter
+
+    let matchesPinned = true
+    if (pinnedOnly) matchesPinned = pinnedIds.includes(note.id)
+
+    return matchesSearch && matchesSubject && matchesSemester && matchesType && matchesPinned
+  })
+
+  // selected note
+  let selectedNote = null
+  for (let note of NOTES) {
+    if (note.id === selectedId) {
+      selectedNote = note
+      break
+    }
+  }
+
+  // notes related to the selected note
+  let relatedNotes = []
+  if (selectedNote) {
+    for (let title of selectedNote.related) {
+      for (let note of NOTES) {
+        if (note.title === title) {
+          relatedNotes.push(note)
+          break
+        }
+      }
+    }
+  }
 
   return (
-    <div className="page">
-      <div className="notes-controls">
-        <input
-          className="notes-search"
-          type="text"
-          placeholder="Search your academic notes..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search your academic notes"
-        />
-        <select value={semester} onChange={(e) => setSemester(e.target.value)} aria-label="Filter by semester">
-          <option value="all">Semester</option>
-          {semesters.map((s) => (
-            <option key={s.id} value={s.id}>
-              Semester {s.id}
-            </option>
-          ))}
-        </select>
-        <select value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Filter by subject">
-          <option value="all">Subject</option>
-          {noteSubjects.map((id) => (
-            <option key={id} value={id}>
-              {subjectOf(id)}
-            </option>
-          ))}
-        </select>
-        <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Filter by type">
-          <option value="all">Type</option>
-          <option value="PDF">PDF</option>
-          <option value="Slides">Slides</option>
-          <option value="Notebook">Notebook</option>
-        </select>
-      </div>
+    <div className="nlib">
+      <NotesHeader
+        query={query}
+        setQuery={setQuery}
+        recentSearches={recentSearches}
+        setRecentSearches={setRecentSearches}
+        onSearch={handleSearch}
+      />
 
-      <p className="results-count micro">
-        {results.length} result{results.length !== 1 ? "s" : ""}
-      </p>
+      <FilterBar
+        subjectFilter={subjectFilter}
+        setSubjectFilter={setSubjectFilter}
+        semesterFilter={semesterFilter}
+        setSemesterFilter={setSemesterFilter}
+        typeFilter={typeFilter}
+        setTypeFilter={setTypeFilter}
+        pinnedOnly={pinnedOnly}
+        setPinnedOnly={setPinnedOnly}
+        pinnedIds={pinnedIds}
+        subjects={SUBJECTS}
+        semesters={SEMESTERS}
+        fileTypes={FILE_TYPES}
+        resultCount={filteredNotes.length}
+        totalCount={NOTES.length}
+      />
 
-      {results.length === 0 ? (
-        <div className="empty-state">
-          <h3 className="serif">No notes found.</h3>
-          <p>Try another search.</p>
-        </div>
+      {filteredNotes.length > 0 ? (
+        <>
+          <NotesGrid
+            notes={filteredNotes.slice(0, visibleNotes)}
+            pinnedIds={pinnedIds}
+            onPin={togglePin}
+            onOpen={openNote}
+          />
+
+          {filteredNotes.length > visibleNotes && (
+            <div className="see-more-wrapper">
+              <button className="see-more-btn" onClick={() => setVisibleNotes(visibleNotes + 4)}>
+                See more<span>↓</span>
+              </button>
+            </div>
+          )}
+        </>
       ) : (
-        <ul className="note-results">
-          {results.map((n) => {
-            const concept = conceptsLiveById[n.conceptId]
-            return (
-              <li key={n.id}>
-                <button type="button" className="note-result" onClick={() => onSelectConcept(n.conceptId)}>
-                  <span className="nr-title">{n.title}</span>
-                  <span className="nr-meta">
-                    {concept.name} · {subjectOf(concept.subject)} · Semester {concept.semester}
-                  </span>
-                  <span className="nr-source">
-                    {n.type} · {n.source}
-                  </span>
-                  <span className="nr-snippet">“{n.body.slice(0, 90)}…”</span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+        <EmptyState query={query} />
       )}
+
+      <NoteDrawer
+        note={selectedNote}
+        relatedNotes={relatedNotes}
+        isPinned={selectedNote ? pinnedIds.includes(selectedNote.id) : false}
+        onClose={() => setSelectedId(null)}
+        onPin={togglePin}
+        onOpen={openNote}
+        onRelatedClick={setSelectedId}
+      />
     </div>
   )
 }

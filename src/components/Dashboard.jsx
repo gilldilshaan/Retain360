@@ -75,72 +75,69 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
 
   return (
     <div className="page">
-      {/* welcome */}
+      {/* hero: greeting on the left, live health on the right */}
       <section className="dash-hero">
-        <h2 className="serif">
-          Welcome back, {profile.name}.
-          <br />
-          Here&rsquo;s where your knowledge stands.
-        </h2>
-        <p>Explore the knowledge you&rsquo;ve built across semesters.</p>
+        <div>
+          <span className="micro">Welcome back</span>
+          <h2 className="serif">
+            Good to see you, {profile.name.split(" ")[0]}.
+          </h2>
+          <p>Here&rsquo;s where your knowledge stands today.</p>
+        </div>
+        <div className="hero-health" aria-label={`Knowledge health ${stats.health}%`}>
+          <span className="hero-health-value serif">{stats.health}%</span>
+          <span className="micro">Knowledge Health</span>
+          <RetentionIndicator value={stats.health} />
+        </div>
       </section>
 
       {/* quick statistics */}
-      <section className="stat-cards">
-        <StatCard value={stats.total} label="Concepts" sub="across 4 semesters" />
+      <section className="stat-cards four">
+        <StatCard value={stats.total} label="Concepts" sub="on your map" />
         <StatCard value={stats.fading} label="Fading" sub="need a refresh" />
         <StatCard value={`${stats.health}%`} label="Knowledge Health" sub="average retention" />
+        <StatCard value={`SEM ${currentSemester.id}`} label="Now Studying" sub={`${currentSemester.avg}% semester avg`} />
       </section>
 
-      <section className="dash-grid">
-        {/* current semester */}
-        <article className="panel-card">
+      {/* today's focus: semester + recommendation share one document */}
+      <section className="panel-card focus-panel">
+        <div className="focus-col">
           <span className="micro">Current Semester</span>
-          <h3 className="panel-title serif">SEM {currentSemester.id} · {currentSemester.name}</h3>
+          <h3 className="panel-title serif">
+            SEM {currentSemester.id} · {currentSemester.name}
+          </h3>
           <p className="panel-sub">
             {currentSemester.count} concepts · {currentSemester.avg}% average retention
           </p>
           <button type="button" className="btn btn-quiet" onClick={() => navigate("/knowledge")}>
-            Open Knowledge Web →
+            Open Knowledge Web
           </button>
-        </article>
+        </div>
 
-        {/* recommended revision */}
-        <article className="panel-card">
+        <div className="focus-divider" aria-hidden="true" />
+
+        <div className="focus-col">
           <span className="micro">Recommended Revision</span>
           {recommended ? (
             <>
               <h3 className="panel-title serif">{recommended.name}</h3>
-              {recommendedNext && (
+              {recommendedNext ? (
                 <p className="panel-builton">
-                  “You may want to revisit this concept before continuing with{" "}
-                  <strong>{recommendedNext.name}</strong>.”
+                  Revisit this before continuing with <strong>{recommendedNext.name}</strong>.
                 </p>
+              ) : (
+                <p className="panel-builton">Weakest link on your map right now.</p>
               )}
               <span className="rec-note micro">Suggested from your own graph — not AI.</span>
               <button type="button" className="btn btn-primary" onClick={() => onExplore(recommended.id)}>
-                Revise Now →
+                Revise Now<span className="btn-orb">→</span>
               </button>
             </>
           ) : (
             <p className="muted-note">Nothing needs special attention right now.</p>
           )}
-        </article>
-      </section>
-
-      {/* knowledge health */}
-      <article className="panel-card health-strip">
-        <span className="micro">Knowledge Health</span>
-        <div className="health-strip-body">
-          <span className="stat-value serif">{stats.health}%</span>
-          <div className="health-strip-meter">
-            <RetentionIndicator value={stats.health} />
-          </div>
-          <button type="button" className="btn btn-quiet" onClick={() => navigate("/memory")}>
-            Full Report →
-          </button>
         </div>
-      </article>
+      </section>
 
       <section className="dash-grid">
         {/* needs revision */}
@@ -176,7 +173,7 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
         <article className="panel-card">
           <div className="panel-head">
             <span className="micro">Recent Notes</span>
-            <button type="button" className="link-btn" onClick={() => navigate("/search")}>
+            <button type="button" className="link-btn" onClick={() => navigate("/notes")}>
               View all
             </button>
           </div>
@@ -231,7 +228,7 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
         </article>
       </section>
 
-      {/* quick navigation actions */}
+      {/* quick navigation */}
       <section className="quick-actions">
         <button type="button" className="btn btn-quiet" onClick={() => navigate("/knowledge")}>
           Knowledge Web
@@ -239,8 +236,8 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
         <button type="button" className="btn btn-quiet" onClick={() => navigate("/memory")}>
           Memory
         </button>
-        <button type="button" className="btn btn-quiet" onClick={() => navigate("/search")}>
-          Search Notes
+        <button type="button" className="btn btn-quiet" onClick={() => navigate("/notes")}>
+          My Notes
         </button>
         <button type="button" className="btn btn-quiet" onClick={() => navigate("/subjects")}>
           Subjects

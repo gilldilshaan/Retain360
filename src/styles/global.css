@@ -1,7 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Inter:wght@400;450;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@400;450;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
 /* ────────────────────────────────────────────────────────────
-   KINSHIP · design tokens
+   RETAIN360 · design tokens
    Warm, editorial, academic. No gradients, no neon, no glass.
    ──────────────────────────────────────────────────────────── */
 
@@ -15,8 +15,9 @@
   --line: rgba(44, 39, 37, 0.14);
   --line-strong: rgba(44, 39, 37, 0.28);
 
-  --serif: "Libre Baskerville", Georgia, serif;
-  --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --serif: "DM Serif Display", Georgia, serif;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
 
   --r-sm: 8px;
   --r-md: 12px;
@@ -53,15 +54,24 @@ button:focus-visible,
 }
 
 .micro {
+  font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .serif {
   font-family: var(--serif);
+  /* DM Serif Display ships a single weight — never synthesize faux bold */
+  font-weight: 400 !important;
+}
+
+/* metadata and numbers read in mono — the Retain360 document voice */
+.node-meta, .toolbar-meta, .statband-label, .card-meta,
+.retention-word, .lineage-sem, .chip-sem, .activity-when, .footer-block .micro {
+  font-family: var(--mono);
 }
 
 /* thin hairline rules used across the app */

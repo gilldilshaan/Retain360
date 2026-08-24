@@ -44,7 +44,7 @@ export default function ProfileMenu({ open, onClose }) {
             className="btn btn-quiet"
             onClick={() => {
               onClose()
-              navigate("/search")
+              navigate("/notes")
             }}
           >
             Search Notes
