@@ -476,6 +476,5 @@ self-clears → Dashboard activity list grows. Six re-renders from one setState 
 
 **Built by Team Retain360** · B.Tech CSE (AI & ML) · Frontend Engineering project
 
-*No backend was harmed in the making of this knowledge web.*
 
 </div>
