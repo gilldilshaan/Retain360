@@ -11,7 +11,7 @@
 [![React](https://img.shields.io/badge/React-18-2C2725?style=flat-square&logo=react&logoColor=F1E4CC)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-798165?style=flat-square&logo=vite&logoColor=F1E4CC)](https://vitejs.dev)
 [![Router](https://img.shields.io/badge/React_Router-7-2C2725?style=flat-square&logo=reactrouter&logoColor=F1E4CC)](https://reactrouter.com)
-[![State](https://img.shields.io/badge/state-useState_only-798165?style=flat-square)](#the-state-model)
+[![State](https://img.shields.io/badge/state-useState_+_Context-798165?style=flat-square)](#the-state-model)
 [![Backend](https://img.shields.io/badge/backend-none_–_mock_data-2C2725?style=flat-square)](#the-data-layer)
 [![License](https://img.shields.io/badge/license-MIT-798165?style=flat-square)](LICENSE)
 
@@ -36,6 +36,8 @@
 - [Roadmap](#roadmap)
 
 ---
+
+> **Notes module:** see [docs/NOTES_MODULE.md](docs/NOTES_MODULE.md) for how the My Notes part (Context, hooks, form, routing) works.
 
 ## The Idea
 

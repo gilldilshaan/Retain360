@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom"
 
 import Sidebar from "./components/Sidebar.jsx"
 import TopHeader from "./components/TopHeader.jsx"
 import KnowledgeMapPage from "./components/KnowledgeMapPage.jsx"
 import Dashboard from "./components/Dashboard.jsx"
 import NotesPage from "./components/NotesPage.jsx"
+import NoteDetailPage from "./components/NoteDetailPage.jsx"
+import { useToast } from "./context/ToastContext.jsx"
 import KnowledgeHealth from "./components/KnowledgeHealth.jsx"
 import SubjectsPage from "./components/SubjectsPage.jsx"
 import RefreshModal from "./components/RefreshModal.jsx"
@@ -38,7 +40,7 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [refreshId, setRefreshId] = useState(null)
   const [retentionOverrides, setRetentionOverrides] = useState({})
-  const [toast, setToast] = useState(null)
+  const { showToast } = useToast() // toast now comes from ToastContext
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const viewRef = useRef(null)
 
@@ -50,14 +52,11 @@ export default function App() {
 
   const location = useLocation()
   const navigate = useNavigate()
-  const pageMeta = PAGE_META[location.pathname] || PAGE_META["/dashboard"]
+  // /notes/5 is not in PAGE_META, so any /notes/... path uses the notes heading
+  const pageMeta =
+    PAGE_META[location.pathname] ||
+    (location.pathname.startsWith("/notes") ? PAGE_META["/notes"] : PAGE_META["/dashboard"])
   const onKnowledgePage = location.pathname === "/knowledge"
-
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(null), 2600)
-    return () => clearTimeout(t)
-  }, [toast])
 
   useEffect(() => {
     setMobileNavOpen(false)
@@ -96,13 +95,13 @@ export default function App() {
       ...prev,
       [id]: Math.min(100, Math.round(((prev[id] ?? conceptsById[id]?.retention) ?? 50) + 14)),
     }))
-    setToast(`${conceptsById[id]?.name} reviewed — retention updated`)
+    showToast(`${conceptsById[id]?.name} reviewed — retention updated`)
     setRefreshId(null)
     setActivities((prev) => [
       { id: `a${Date.now()}`, icon: "✓", text: `Reviewed ${conceptsById[id]?.name}`, when: "Just now" },
       ...prev,
     ])
-  }, [])
+  }, [showToast])
 
   // The landing page renders standalone, outside the app frame.
   if (location.pathname === "/") {
@@ -183,7 +182,11 @@ export default function App() {
               />
             }
           />
-          <Route path="/notes" element={<NotesPage />} />
+          {/* nested routes: /notes shows the list, /notes/:noteId shows one note */}
+          <Route path="/notes" element={<Outlet />}>
+            <Route index element={<NotesPage />} />
+            <Route path=":noteId" element={<NoteDetailPage />} />
+          </Route>
           <Route
             path="/subjects"
             element={
@@ -215,12 +218,6 @@ export default function App() {
           onClose={() => setRefreshId(null)}
           onReviewed={handleReviewed}
         />
-      )}
-
-      {toast && (
-        <div className="toast" role="status">
-          {toast}
-        </div>
       )}
     </div>
   )

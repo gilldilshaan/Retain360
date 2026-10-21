@@ -1,8 +1,8 @@
 import React from "react"
-import { Search, X } from "lucide-react"
+import { Search, X, Plus } from "lucide-react"
 
 // Notes hero + search + recent searches.
-export default function NotesHeader({ query, setQuery, recentSearches, setRecentSearches, onSearch }) {
+export default function NotesHeader({ query, setQuery, recentSearches, setRecentSearches, onSearch, onAdd }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     onSearch()
@@ -15,6 +15,10 @@ export default function NotesHeader({ query, setQuery, recentSearches, setRecent
       <h1>Every note you&rsquo;ve ever written, one search away.</h1>
 
       <p className="subhead">Your semesters change. Your knowledge stays connected.</p>
+
+      <button type="button" className="nl-add-btn" onClick={onAdd}>
+        <Plus size={15} /> New note
+      </button>
 
       <form className="search-form" onSubmit={handleSubmit}>
         <span className="search-icon">

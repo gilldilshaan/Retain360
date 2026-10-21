@@ -2,6 +2,8 @@ import React from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
 import App from "./App.jsx"
+import { ToastProvider } from "./context/ToastContext.jsx"
+import { NotesProvider } from "./context/NotesContext.jsx"
 import "./styles/global.css"
 
 // one stylesheet per surface — imported in cascade order
@@ -11,13 +13,19 @@ import "./styles/dashboard.css"    // dashboard page
 import "./styles/memory.css"       // knowledge health page
 import "./styles/subjects.css"     // subjects page
 import "./styles/notes.css"        // notes library (.nlib)
+import "./styles/notes-extra.css"  // notes: form modal, buttons, note detail page
 import "./styles/landing.css"      // marketing landing page
 import "./styles/profile.css"      // profile page + menu
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      {/* providers wrap the app so every page can use toast + notes */}
+      <ToastProvider>
+        <NotesProvider>
+          <App />
+        </NotesProvider>
+      </ToastProvider>
     </BrowserRouter>
   </React.StrictMode>
 )

@@ -1,14 +1,13 @@
 import React from "react"
 import { Pin } from "lucide-react"
 import FileTypeIcon from "./FileTypeIcon.jsx"
-import { SUBJECT_COLORS } from "../../data/noteLibrary.js"
 
-export default function NoteCard({ note, isPinned, onPin, onOpen, sizeClass, colorVariant }) {
+export default function NoteCard({ note, isPinned, onPin, onOpen, onView, sizeClass, colorVariant }) {
   return (
     <div
       className={`note-card ${sizeClass} ${colorVariant}`}
       style={{
-        "--subject-color": SUBJECT_COLORS[note.subject] || "#798165",
+    "--subject-color": "#798165",
       }}
       onClick={() => onOpen(note)}
     >
@@ -44,7 +43,7 @@ export default function NoteCard({ note, isPinned, onPin, onOpen, sizeClass, col
           className="open-btn"
           onClick={(e) => {
             e.stopPropagation()
-            onOpen(note)
+            onView(note) // go to the full page /notes/:id
           }}
         >
           Open note
