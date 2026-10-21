@@ -13,7 +13,7 @@ const COLOR_PATTERN = [
   "variant-sage", "variant-b", "variant-a", "variant-sage",
 ]
 
-export default function NotesGrid({ notes, pinnedIds, onPin, onOpen }) {
+export default function NotesGrid({ notes, pinnedIds, onPin, onOpen, onView }) {
   return (
     <div className="notes-grid">
       {notes.map((note, index) => {
@@ -26,6 +26,7 @@ export default function NotesGrid({ notes, pinnedIds, onPin, onOpen }) {
             isPinned={isPinned}
             onPin={onPin}
             onOpen={onOpen}
+            onView={onView}
             sizeClass={SIZE_PATTERN[index % SIZE_PATTERN.length]}
             colorVariant={isPinned ? "variant-pinned" : COLOR_PATTERN[index % COLOR_PATTERN.length]}
           />

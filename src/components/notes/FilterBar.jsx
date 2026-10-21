@@ -7,6 +7,7 @@ export default function FilterBar({
   semesterFilter, setSemesterFilter,
   typeFilter, setTypeFilter,
   pinnedOnly, setPinnedOnly,
+  sortBy, setSortBy,
   pinnedIds, subjects, semesters, fileTypes,
   resultCount, totalCount,
 }) {
@@ -41,6 +42,12 @@ export default function FilterBar({
               {type === "All" ? "All file types" : type}
             </option>
           ))}
+        </select>
+
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} aria-label="Sort notes">
+          <option value="recent">Sort: Recently updated</option>
+          <option value="title">Sort: Title A–Z</option>
+          <option value="semester">Sort: Semester</option>
         </select>
 
         <button

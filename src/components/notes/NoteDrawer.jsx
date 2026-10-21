@@ -1,8 +1,8 @@
 import React from "react"
-import { X, Pin, PinOff, Link2 } from "lucide-react"
+import { X, Pin, PinOff, Link2, Pencil, Trash2 } from "lucide-react"
 import FileTypeIcon from "./FileTypeIcon.jsx"
 
-export default function NoteDrawer({ note, relatedNotes, isPinned, onClose, onPin, onOpen, onRelatedClick }) {
+export default function NoteDrawer({ note, relatedNotes, isPinned, onClose, onPin, onOpen, onRelatedClick, onEdit, onDelete }) {
   if (!note) return null
 
   return (
@@ -23,6 +23,18 @@ export default function NoteDrawer({ note, relatedNotes, isPinned, onClose, onPi
         </div>
 
         <p className="drawer-preview">{note.preview}</p>
+
+        {/* the real written note (first part only) */}
+        <div className="drawer-note">
+          <div className="drawer-note-label">Your notes</div>
+          {note.content ? (
+            <p className="drawer-note-text">
+              {note.content.length > 220 ? note.content.slice(0, 220) + "…" : note.content}
+            </p>
+          ) : (
+            <p className="drawer-note-text empty">Nothing written yet. Open the note to start writing.</p>
+          )}
+        </div>
 
         <div className="tag-row">
           {note.tags.map((tag) => (
@@ -51,7 +63,20 @@ export default function NoteDrawer({ note, relatedNotes, isPinned, onClose, onPi
           </button>
 
           <button className="open-btn-large" onClick={() => onOpen(note)}>
-            Open note
+            Read full note
+          </button>
+        </div>
+
+        {/* second row: edit and delete */}
+        <div className="drawer-actions drawer-actions-secondary">
+          <button className="pin-drawer-btn" onClick={() => onEdit(note)}>
+            <Pencil size={14} />
+            Edit
+          </button>
+
+          <button className="pin-drawer-btn" onClick={() => onDelete(note)}>
+            <Trash2 size={14} />
+            Delete
           </button>
         </div>
 
