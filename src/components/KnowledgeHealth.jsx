@@ -1,5 +1,6 @@
 import React, { useMemo } from "react"
 import { subjects, subjectOf } from "../data/subjects.js"
+import { useApp } from "../context/AppContext.jsx"
 
 // ── simple retention thresholds (same logic as RetentionIndicator) ──
 const statusOf = (retention) =>
@@ -37,14 +38,18 @@ function MemMeter({ value, low }) {
   )
 }
 
-export default function KnowledgeHealth({
-  conceptsLive,
-  activities = [],
-  onSelectConcept,
-  onRefresh,
-  onOpenSubject,
-}) {
-  // ── every number below is derived from the live concept list ──
+export default function KnowledgeHealth(props = {}) {
+  let context = null
+  try {
+    context = useApp()
+  } catch {
+    context = null
+  }
+  const conceptsLive = props.conceptsLive ?? context?.conceptsLive ?? []
+  const activities = props.activities ?? context?.activities ?? []
+  const onSelectConcept = props.onSelectConcept ?? context?.goToConcept
+  const onRefresh = props.onRefresh ?? context?.setRefreshId
+  const onOpenSubject = props.onOpenSubject
   const report = useMemo(() => {
     const total = conceptsLive.length
     const avg = Math.round(conceptsLive.reduce((s, c) => s + c.retention, 0) / total)
@@ -175,7 +180,7 @@ export default function KnowledgeHealth({
                 <button
                   type="button"
                   className="mem-subject-row"
-                  onClick={() => onOpenSubject(s.id)}
+                  onClick={() => onOpenSubject && onOpenSubject(s.id)}
                   title={`Open ${s.name} in the Knowledge Web`}
                 >
                   <span className="mem-subject-name">

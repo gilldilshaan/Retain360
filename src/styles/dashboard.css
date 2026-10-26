@@ -213,3 +213,93 @@ li:last-child > .note-mini { border-bottom: none; }
   .focus-divider { width: auto; height: 1px; }
 }
 
+
+/* ── Phase 2 Dashboard Enhancements ── */
+.attention-item {
+  width: 100%;
+}
+.attention-main-btn {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.attention-main-btn:hover .attention-name {
+  color: var(--sage-deep);
+}
+.attention-sem {
+  color: var(--ink-soft);
+  font-size: 9.5px;
+}
+.rev-action-btn {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line-strong);
+  color: var(--charcoal);
+  transition: all var(--fast) var(--ease);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rev-action-btn:hover {
+  background: var(--sage);
+  color: #f6efdc;
+  border-color: var(--sage-deep);
+}
+.revision-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 10px 0 8px;
+}
+.rev-tab {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  background: transparent;
+  transition: all var(--fast) var(--ease);
+  cursor: pointer;
+}
+.rev-tab:hover {
+  border-color: var(--sage);
+  color: var(--charcoal);
+  background: rgba(121, 129, 101, 0.08);
+}
+.rev-tab.active {
+  background: var(--sage);
+  color: #f6efdc;
+  border-color: var(--sage-deep);
+}
+.dash-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.activity-btn {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.activity-btn:hover {
+  background: rgba(121, 129, 101, 0.1);
+}
+.activity-btn:hover .activity-text {
+  color: var(--sage-deep);
+}
+.badge.steady {
+  color: var(--ink-soft);
+  border-color: var(--line-strong);
+  background: rgba(44, 39, 37, 0.06);
+}

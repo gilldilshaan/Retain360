@@ -15,6 +15,7 @@ import "./styles/memory.css"       // knowledge health page
 import "./styles/subjects.css"     // subjects page
 import "./styles/notes.css"        // notes library (.nlib)
 import "./styles/notes-extra.css"  // notes: form modal, buttons, note detail page
+import "./styles/search.css"       // global search page
 import "./styles/landing.css"      // marketing landing page
 import "./styles/profile.css"      // profile page + menu
 

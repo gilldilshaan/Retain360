@@ -5,8 +5,15 @@ import { subjectOf } from "../data/subjects.js"
 export default function SearchConcepts({ concepts, onSelect, open, onClose }) {
   const [query, setQuery] = useState("")
 
-  const results = query.trim()
-    ? concepts.filter((c) => c.name.toLowerCase().includes(query.trim().toLowerCase()))
+  const q = query.trim().toLowerCase()
+  const results = q
+    ? concepts.filter(
+        (c) =>
+          c.name?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q) ||
+          c.subject?.toLowerCase().includes(q) ||
+          subjectOf(c.subject)?.toLowerCase().includes(q)
+      )
     : []
 
   const handlePick = (concept) => {
