@@ -234,7 +234,7 @@ background:
 
 .modal {
   position: relative;
-  width: min(480px, calc(100vw - 40px));
+  width: min(560px, calc(100vw - 40px)); max-height: calc(100vh - 100px); overflow-y: auto;
   background: var(--paper-soft);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-lg);
@@ -487,5 +487,6 @@ button.brand { background: none; border: none; text-align: left; cursor: pointer
   text-transform: uppercase;
   color: var(--ink-soft);
 }
+
 
 
