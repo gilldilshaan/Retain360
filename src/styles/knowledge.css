@@ -88,6 +88,7 @@
 .tool-btn:hover { background: rgba(121,129,101,0.12); border-color: var(--sage); }
 .tool-btn .icon { width: 15px; height: 15px; }
 
+
 /* ── workspace ─────────────────────────────────────────── */
 .workspace {
   display: grid;

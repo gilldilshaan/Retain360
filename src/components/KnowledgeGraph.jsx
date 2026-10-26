@@ -126,6 +126,10 @@ export default function KnowledgeGraph({
   /* ── drag to pan ── */
   const onPointerDown = (e) => {
     if (e.button !== 0) return
+    // Only start a pan when the empty canvas itself is pressed. If a node
+    // (or anything inside it) is the target, let that element keep the
+    // pointer — capturing it here swallows its click so nodes never select.
+    if (e.target !== e.currentTarget) return
     drag.current = {
       active: true,
       startX: e.clientX,

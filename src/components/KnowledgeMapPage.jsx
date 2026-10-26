@@ -32,7 +32,6 @@ export default function KnowledgeMapPage({
   viewRef,
   onRefresh,
 }) {
-  // ⌘K / Ctrl+K opens concept search (map page only)
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
