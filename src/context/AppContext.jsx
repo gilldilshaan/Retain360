@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 import { useNavigate } from "react-router-dom"
 import { concepts, conceptsById } from "../data/concepts.js"
 import { buildNotifications } from "../components/dashboard/NotificationsPanel.jsx"
+import { useToast } from "./ToastContext.jsx"
 
 // Derived status based on standard thresholds (aligns with KnowledgeHealth: >=75 strong, 55-74 normal, <55 fading)
 export function deriveStatus(retention) {
@@ -14,6 +15,7 @@ const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
   const navigate = useNavigate()
+  const toastCtx = useToast()
 
   // ── Graph selection & viewport ref ──
   const [selectedId, setSelectedId] = useState(null)
@@ -86,19 +88,24 @@ export function AppProvider({ children }) {
   )
 
   // Execute a concept review (+14 retention bump, toast banner, activity entry, closes modal)
-  const handleReviewed = useCallback((id) => {
-    const concept = conceptsById[id]
-    setRetentionOverrides((prev) => ({
-      ...prev,
-      [id]: Math.min(100, Math.round(((prev[id] ?? concept?.retention) ?? 50) + 14)),
-    }))
-    setToast(`${concept?.name || "Concept"} reviewed — retention updated`)
-    setRefreshId(null)
-    setActivities((prev) => [
-      { id: `a${Date.now()}`, icon: "✓", text: `Reviewed ${concept?.name || id}`, when: "Just now", conceptId: id },
-      ...prev,
-    ])
-  }, [])
+  const handleReviewed = useCallback(
+    (id) => {
+      const concept = conceptsById[id]
+      setRetentionOverrides((prev) => ({
+        ...prev,
+        [id]: Math.min(100, Math.round(((prev[id] ?? concept?.retention) ?? 50) + 14)),
+      }))
+      const msg = `${concept?.name || "Concept"} reviewed — retention updated`
+      setToast(msg)
+      toastCtx?.showToast?.(msg)
+      setRefreshId(null)
+      setActivities((prev) => [
+        { id: `a${Date.now()}`, icon: "✓", text: `Reviewed ${concept?.name || id}`, when: "Just now", conceptId: id },
+        ...prev,
+      ])
+    },
+    [toastCtx]
+  )
 
   const value = useMemo(
     () => ({

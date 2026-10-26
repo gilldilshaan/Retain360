@@ -25,7 +25,7 @@ export function buildLineage(concept, lookup) {
   return [...up, concept, ...down]
 }
 
-// The signature KINSHIP element: shows concepts learned years apart as one
+// The signature RETAIN360 element: shows concepts learned years apart as one
 // chain, grouped under their semester labels.
 export default function KnowledgeLineage({ concept, onSelectConcept, lookup }) {
   const chain = buildLineage(concept, lookup)

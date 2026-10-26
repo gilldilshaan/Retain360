@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react"
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom"
 
 import Sidebar from "./components/Sidebar.jsx"
 import TopHeader from "./components/TopHeader.jsx"
 import KnowledgeMapPage from "./components/KnowledgeMapPage.jsx"
 import Dashboard from "./components/Dashboard.jsx"
 import NotesPage from "./components/NotesPage.jsx"
+import NoteDetailPage from "./components/NoteDetailPage.jsx"
+import SearchPage from "./components/SearchPage.jsx"
 import KnowledgeHealth from "./components/KnowledgeHealth.jsx"
 import SubjectsPage from "./components/SubjectsPage.jsx"
 import RefreshModal from "./components/RefreshModal.jsx"
 import LandingPage from "./components/LandingPage.jsx"
-import SearchPage from "./components/SearchPage.jsx"
 import ProfilePage from "./components/ProfilePage.jsx"
 
 import { conceptsById } from "./data/concepts.js"
@@ -22,7 +23,7 @@ const PAGE_META = {
   "/memory": { eyebrow: "My Knowledge", title: "Memory", sub: "What you remember — and what's fading." },
   "/notes": { eyebrow: "My Library", title: "My Notes", sub: "Everything you've written, searchable." },
   "/subjects": { eyebrow: "My Knowledge", title: "Subjects", sub: "Courses across all four years." },
-  "/search": { eyebrow: "My Library", title: "Search & Notes", sub: "Find any concept or note across your degree." },
+  "/search": { eyebrow: "My Library", title: "Search", sub: "Search concepts, notes, and coursework." },
   "/profile": { eyebrow: "Account", title: "Profile", sub: "Your academic snapshot at a glance." },
 }
 
@@ -37,8 +38,9 @@ function AppContent() {
     setRefreshId,
     handleReviewed,
     retentionOverrides,
-    toast,
+    activities,
     notifications,
+    goToConcept,
   } = useApp()
 
   // ── Graph visualization filter state local to knowledge map ──
@@ -54,7 +56,11 @@ function AppContent() {
 
   const location = useLocation()
   const navigate = useNavigate()
-  const pageMeta = PAGE_META[location.pathname] || PAGE_META["/dashboard"]
+
+  // /notes/:noteId uses the /notes pageMeta
+  const pageMeta =
+    PAGE_META[location.pathname] ||
+    (location.pathname.startsWith("/notes") ? PAGE_META["/notes"] : PAGE_META["/dashboard"])
 
   const handleOpenSearch = useCallback(() => {
     if (location.pathname === "/knowledge") {
@@ -141,8 +147,29 @@ function AppContent() {
               />
             }
           />
-          <Route path="/memory" element={<KnowledgeHealth />} />
-          <Route path="/notes" element={<NotesPage />} />
+          <Route
+            path="/memory"
+            element={
+              <KnowledgeHealth
+                conceptsLive={conceptsLive}
+                activities={activities}
+                onSelectConcept={goToConcept}
+                onRefresh={setRefreshId}
+                onOpenSubject={(subjectId) => {
+                  setSemesterFilter("all")
+                  setSubjectFilter(subjectId)
+                  navigate("/knowledge")
+                }}
+              />
+            }
+          />
+
+          {/* nested routes: /notes shows the list, /notes/:noteId shows one note */}
+          <Route path="/notes" element={<Outlet />}>
+            <Route index element={<NotesPage />} />
+            <Route path=":noteId" element={<NoteDetailPage />} />
+          </Route>
+
           <Route
             path="/subjects"
             element={
@@ -156,8 +183,11 @@ function AppContent() {
               />
             }
           />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route
+            path="/search"
+            element={<SearchPage conceptsLiveById={conceptsLiveById} onExplore={goToConcept} />}
+          />
+          <Route path="/profile" element={<ProfilePage conceptsLive={conceptsLive} />} />
 
           {/* compatibility redirects */}
           <Route path="/map" element={<Navigate to="/knowledge" replace />} />
@@ -174,12 +204,6 @@ function AppContent() {
           onClose={() => setRefreshId(null)}
           onReviewed={handleReviewed}
         />
-      )}
-
-      {toast && (
-        <div className="toast" role="status">
-          {toast}
-        </div>
       )}
     </div>
   )

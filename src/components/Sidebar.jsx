@@ -14,7 +14,6 @@ const primaryNav = [
   { id: "/dashboard", label: "Dashboard", icon: OverviewIcon },
   { id: "/knowledge", label: "Knowledge Web", icon: MapIcon },
   { id: "/memory", label: "Memory", icon: MemoryIcon },
-  { id: "/search", label: "Search Notes", icon: SearchIcon },
 ]
 
 const secondaryNav = [
@@ -48,7 +47,7 @@ export default function Sidebar({ active, onNavigate }) {
           <MapIcon width={20} height={20} />
         </span>
         <span className="brand-text">
-          <span className="brand-name">KINSHIP</span>
+          <span className="brand-name">RETAIN360</span>
           <span className="brand-sub">ACADEMIC KNOWLEDGE WEB</span>
         </span>
       </button>

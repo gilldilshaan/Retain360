@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/knowledge-chain.svg" alt="KINSHIP — a concept chain lighting up across semesters" width="880"/>
+<img src="docs/knowledge-chain.svg" alt="Retain360 — a concept chain lighting up across semesters" width="880"/>
 
-# KINSHIP
+# Retain360
 
 **ACADEMIC KNOWLEDGE WEB**
 
@@ -11,8 +11,9 @@
 [![React](https://img.shields.io/badge/React-18-2C2725?style=flat-square&logo=react&logoColor=F1E4CC)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-798165?style=flat-square&logo=vite&logoColor=F1E4CC)](https://vitejs.dev)
 [![Router](https://img.shields.io/badge/React_Router-7-2C2725?style=flat-square&logo=reactrouter&logoColor=F1E4CC)](https://reactrouter.com)
-[![State](https://img.shields.io/badge/state-useState_only-798165?style=flat-square)](#the-state-model)
+[![State](https://img.shields.io/badge/state-useState_+_Context-798165?style=flat-square)](#the-state-model)
 [![Backend](https://img.shields.io/badge/backend-none_–_mock_data-2C2725?style=flat-square)](#the-data-layer)
+[![License](https://img.shields.io/badge/license-MIT-798165?style=flat-square)](LICENSE)
 
 </div>
 
@@ -36,15 +37,17 @@
 
 ---
 
+> **Notes module:** see [docs/NOTES_MODULE.md](docs/NOTES_MODULE.md) for how the My Notes part (Context, hooks, form, routing) works.
+
 ## The Idea
 
-Universities teach in isolated semester boxes. KINSHIP draws the lines between the boxes:
+Universities teach in isolated semester boxes. Retain360 draws the lines between the boxes:
 
 > **Matrices** (Sem 1) → **Matrix Multiplication** (Sem 1) → **Neural Networks** (Sem 3) → **Deep Learning** (Sem 4)
 >
 > Four concepts. Three semesters. One chain of knowledge.
 
-When you select a concept, KINSHIP lights up everything it was *built on* and everything it will be *used in* — and shows you which prerequisites are fading from memory.
+When you select a concept, Retain360 lights up everything it was *built on* and everything it will be *used in* — and shows you which prerequisites are fading from memory.
 
 ---
 
@@ -67,19 +70,20 @@ This is the exact flow to run in an evaluation. Every step is real state, not a 
 
 ```mermaid
 flowchart LR
-    A["Dashboard\nExplore Connection"] --> B["Knowledge Map\nNeural Networks selected"]
-    B --> C["Prerequisite chain\nlights up"]
-    C --> D["Inspector:\nBuilt On + Debt 42%"]
-    D --> E["Click Matrix\nMultiplication"]
-    E --> F["Quick Refresh\nmodal + 2×2 example"]
-    F --> G["Mark as Reviewed\n42% → 56%"]
-    G --> H["Debt disappears\ntoast + lineage"]
+    A["Dashboard<br/>Explore Connection"] --> B["Knowledge Map<br/>Neural Networks selected"]
+    B --> C["Prerequisite chain<br/>lights up"]
+    C --> D["Inspector:<br/>Built On + Debt 42%"]
+    D --> E["Click Matrix<br/>Multiplication"]
+    E --> F["Quick Refresh<br/>modal + 2×2 example"]
+    F --> G["Mark as Reviewed<br/>42% → 56%"]
+    G --> H["Debt disappears<br/>toast + lineage"]
 ```
 
 | Step | You do | React does |
 |:---:|---|---|
-| 1 | Open Dashboard | stats computed with `useMemo` from mock data |
-| 2 | Click **Explore Connection →** | `goToConcept()` sets `selectedId` + navigates |
+| 0 | Land on the marketing page | scroll-reveals fire via one IntersectionObserver |
+| 1 | Click **Launch Map** or **Open App** | `navigate()` into the app shell |
+| 2 | On Dashboard, click **Explore Connection →** | `goToConcept()` sets `selectedId` + navigates |
 | 3 | Map opens | graph pans to the node via `viewRef.focusOn()` |
 | 4 | Watch the graph | unrelated nodes dim, two chains glow |
 | 5 | Read inspector | **Built On**: MM · Derivatives · Functions · Probability |
@@ -98,13 +102,19 @@ flowchart LR
 | Select a node | click / keyboard focus | `selectedId` lifted to App |
 | Hover a node | tooltip with subject + retention | `hoveredId` |
 | Transitive highlighting | ancestors & descendants light up | `relatedChainIds()` walk |
+| **Drag to pan** | grab any empty canvas space | pointer capture + `{ tx, ty }` deltas |
+| **Cursor-anchored zoom** | scroll wheel over the map | world-point stays under the cursor (`tx = px − wx·s′`) |
+| **Double-click** | empty canvas space | fits the whole map to view |
+| Zoom HUD | bottom-right of the map | live `%` readout from `view.s` |
 | Semester / Subject filters | toolbar dropdowns | derived `visibleConcepts` |
 | Edge toggles | Prerequisites / Related Concepts switches | boolean state + dashed strokes |
-| Zoom / Fit / Reset | toolbar buttons or scroll wheel | imperative `viewRef` handle |
 | Reset Filters | one click back to defaults | plain setter calls |
 | Quick Refresh modal | review a fading concept | Escape key + backdrop close |
 | Retention update | Mark as Reviewed | `42% → 56%`, debt auto-clears |
-| Cross-page deep links | Dashboard / Notes / Health cards | `goToConcept(id)` |
+| Cross-page deep links | Dashboard / Notes / Health / Subjects cards | `goToConcept(id)` |
+| Scroll reveals | Landing page sections | IntersectionObserver + `.in` class |
+| Pin & filter notes | My Notes library | `pinnedIds` array + 4 combobox filters |
+| Note drawer | click any paper card | slide-over with tags + related-note jumping |
 
 <details>
 <summary><b>Why is the highlight "transitive"?</b></summary>
@@ -135,24 +145,26 @@ export function relatedChainIds(id) {
 
 ## Architecture
 
-One rule: **state lives in `App.jsx`. Everything else receives props and sends callbacks.**
+One rule: **state that crosses pages lives in `App.jsx`; each page keeps only its tiny local UI state** (e.g. the notes library's search box and pins).
 
 ```mermaid
 graph TD
-    APP["App.jsx<br/>ALL useState lives here"]
+    APP["App.jsx<br/>all shared state: selection · filters · retention"]
 
     APP -->|"active path"| SB["Sidebar"]
     APP -->|"page meta"| TH["TopHeader"]
 
     subgraph pages ["Routes (react-router-dom v7)"]
-      D["Dashboard /"]
-      M["KnowledgeMapPage /map"]
-      H["KnowledgeHealth /health"]
+      L["LandingPage /"]
+      D["Dashboard /dashboard"]
+      M["KnowledgeMapPage /knowledge"]
+      H["KnowledgeHealth /memory"]
       N["NotesPage /notes"]
       S["SubjectsPage /subjects"]
+      P["ProfilePage /profile"]
     end
 
-    APP --> D & M & H & N & S
+    APP --> L & D & M & H & N & S & P
 
     M --> GT["GraphToolbar"]
     M --> KG["KnowledgeGraph"]
@@ -161,7 +173,8 @@ graph TD
     CI --> RI["RetentionIndicator"]
     CI --> KL["KnowledgeLineage"]
     CI --> KD["KnowledgeDebt"]
-    M --> SC["SearchConcepts"]
+    M --> SC["SearchConcepts ⌘K"]
+    N --> NH["NotesHeader"] & FB["FilterBar"] & NG["NotesGrid"] & NC["NoteCard"] & ND["NoteDrawer"]
     APP --> RM["RefreshModal"]
 
     style APP fill:#798165,color:#F6EFDC,stroke:#2C2725
@@ -199,6 +212,23 @@ visibleConcepts   ← conceptsLive filtered by sem+subject (useMemo)
 visibleConnections← edges whose BOTH endpoints are visible
 ```
 
+### Styling
+
+One stylesheet per surface, imported once in `main.jsx` in cascade order.
+Every Notes-library rule is scoped under `.nlib`, so it can never leak into the app shell.
+
+| File | Owns |
+|---|---|
+| [`global.css`](src/styles/global.css) | design tokens, fonts, resets, focus rings, grain |
+| [`shell.css`](src/styles/shell.css) | app frame, sidebar, top header, buttons, modal, toast |
+| [`knowledge.css`](src/styles/knowledge.css) | graph toolbar, canvas, nodes, edges, inspector, ⌘K overlay |
+| [`dashboard.css`](src/styles/dashboard.css) | dashboard hero, stat cards, focus panel |
+| [`memory.css`](src/styles/memory.css) | Knowledge Health page |
+| [`subjects.css`](src/styles/subjects.css) | Subjects page |
+| [`notes.css`](src/styles/notes.css) | Notes library (teammate UI) |
+| [`landing.css`](src/styles/landing.css) | marketing landing page |
+| [`profile.css`](src/styles/profile.css) | Profile page + dropdown menu |
+
 ---
 
 ## The Data Layer
@@ -225,7 +255,9 @@ Four small files. Relationships are declared **once** and connections are derive
 | [`connections.js`](src/data/connections.js) | edge builder + transitive `relatedChainIds()` |
 | [`positions.js`](src/data/positions.js) | hand-laid x/y coordinates (semester columns) |
 | [`subjects.js`](src/data/subjects.js) | subject list + semester labels |
-| [`notes.js`](src/data/notes.js) | mock notes joined to concepts by `conceptId` |
+| [`notes.js`](src/data/notes.js) | concept-linked quick notes (inspector + dashboard) |
+| [`noteLibrary.js`](src/data/noteLibrary.js) | the 14-note library behind My Notes — tags, related topics, file types |
+| [`profile.js`](src/data/profile.js) | the signed-in student: name, initials, degree, semester |
 
 ---
 
@@ -234,13 +266,29 @@ Four small files. Relationships are declared **once** and connections are derive
 *Every section below expands — click to read.*
 
 <details>
-<summary><b>KnowledgeGraph</b> — SVG edges + absolutely-positioned node buttons</summary>
+<summary><b>KnowledgeGraph</b> — curved edges, real pan/zoom, node buttons</summary>
 
-- World space: 1320×1050 units inside a transformed `<div>` (`translate + scale`)
-- Edges live in one `<svg>` layer; nodes are real `<button>`s on top — accessible by default
-- Semester bands drawn as faint dashed separators with micro-labels
-- Pan/zoom via a single `{ s, tx, ty }` object; fit-to-screen computes scale from bounds
-- Exposes `zoomIn / zoomOut / fit / reset / focusOn` to the toolbar through `viewRef`
+- World space: 1320×1050 units inside a transformed <code>&lt;div&gt;</code> (<code>translate + scale</code>)
+- <b>Drag to pan</b>: pointer capture on the canvas; a &gt;5px drag suppresses accidental deselection
+- <b>Cursor-anchored zoom</b>: non-passive wheel listener (React&rsquo;s is passive) keeps the world
+  point under your cursor pinned while the scale changes — clamped 0.22×–2.6×
+- Edges are quadratic béziers bowed alternately; highlighted chains get <b>flowing dashes</b>
+  that travel prerequisite → concept
+- Nodes are real <code>&lt;button&gt;</code>s that cascade in on mount and pulse when selected;
+  double-click empty space fits the map, and a mono HUD shows live zoom %
+- Exposes <code>zoomIn / zoomOut / fit / reset / focusOn</code> to the toolbar through <code>viewRef</code>
+</details>
+
+<details>
+<summary><b>NotesPage — the teammate library, integrated</b></summary>
+
+Seven small components under <code>components/notes/</code>: header with recent searches,
+a four-way FilterBar (subject · semester · type · pinned), a masonry grid of folded-corner
+paper documents in three heights and four colour variants, a sage slide-over drawer with
+tags + related-note jumping, an empty state, and file-type icons. All state lives in
+<code>NotesPage.jsx</code>; data comes from <code>noteLibrary.js</code> so it can be swapped for an API later.
+Every CSS rule is scoped under <code>.nlib</code> and two colliding class names were renamed
+<code>nl-*</code> so nothing leaks into — or out of — the app shell.
 </details>
 
 <details>
@@ -269,12 +317,24 @@ Opens for any concept. Shows a worked 2×2 matrix example for Matrix Multiplicat
 </details>
 
 <details>
+<summary><b>LandingPage</b> — the premium front door</summary>
+
+Floating pill nav, editorial hero with the animated chain graphic, a stats band computed
+from mock data, an asymmetric bento of product features, a 3-step workflow, and a sage
+thesis band. Scroll-reveals run on one small IntersectionObserver that adds <code>.in</code>
+to <code>[data-reveal]</code> elements — the CSS handles the rest. Renders standalone at
+<code>/</code>, outside the app frame.
+</details>
+
+<details>
 <summary><b>The other pages</b></summary>
 
-- <b>Dashboard</b> — hero, 3 stat cards (computed), Continue Learning, Needs Attention, Recent Activity
-- <b>Notes</b> — text search + Semester/Subject/Type selects over mock notes, snippet cards
+- <b>Dashboard</b> — greeting hero with live Knowledge Health meter, 4 stat cards, a
+  <i>Today&rsquo;s Focus</i> document (semester + recommended revision side by side),
+  Needs Revision, Recent Notes, activity + notifications
 - <b>Knowledge Health</b> — average retention, strong/steady/fading counts, fading list with bars
 - <b>Subjects</b> — per-subject cards with counts; clicking opens the map pre-filtered
+- <b>Profile</b> — signed-in student (from <code>profile.js</code>), per-subject strength rows
 </details>
 
 ---
@@ -289,21 +349,24 @@ Warm parchment, sage ink, charcoal type. No blues, no gradients, no neon.
 | ▉ | `#798165` | accents, selected states, edges, buttons |
 | ▉ | `#2C2725` | headings, body text, borders, icons |
 
-Typography pairs **Libre Baskerville** (editorial headings) with **Inter** (UI).
-Micro-labels are uppercase with wide letter-spacing. Radii stay between 8–16px;
-animations live in the 150–250ms band.
+Typography pairs **DM Serif Display** (editorial headings) with **IBM Plex Sans** (UI)
+and **IBM Plex Mono** (metadata, labels, numbers). Cards read as paper documents —
+thick borders, folded top-right corner, a slight lift-and-tilt on hover.
+Micro-labels are mono uppercase with wide letter-spacing.
 
 ---
 
 ## Keyboard Shortcuts
 
-| Keys | Action |
+| Keys / Mouse | Action |
 |---|---|
 | `⌘K` / `Ctrl+K` | toggle concept search (map page) |
 | `Tab` | move through nodes, chips and controls |
 | `Enter` / `Space` | activate the focused node or chip |
-| `Esc` | close search panel or refresh modal |
-| `Scroll` | zoom the graph under the cursor |
+| `Esc` | close search panel, drawer or refresh modal |
+| `Scroll` on map | zoom anchored under the cursor |
+| `Drag` on map canvas | pan the whole web |
+| `Double-click` on map | fit everything to view |
 
 ---
 
@@ -315,8 +378,9 @@ gitGraph
     branch dev
     checkout dev
     commit id: "flagship map"
-    commit id: "dashboard + router"
-    main --> dev
+    commit id: "notes + dashboard v2"
+    checkout main
+    merge dev id: "release"
 ```
 
 ```bash
@@ -334,15 +398,33 @@ git push -u origin yourname/feature  # then open a PR into dev
 
 <details>
 <summary><b>Q: Where does state live and why?</b></summary>
-Entirely in <code>App.jsx</code>. Five components need <code>selectedId</code> (graph, chips,
-lineage, search, dashboard) — lifting it means one truth and props everywhere else.
+Anything shared — selection, filters, retention overrides, toasts — lives in <code>App.jsx</code>
+because five components need it. Pages keep only local UI state (the notes library owns its
+search box, pins and drawer; the landing owns nothing). Rule of thumb: <i>lift it when two
+components need it</i>.
 </details>
 
 <details>
 <summary><b>Q: How does the Dashboard reach a specific node on another route?</b></summary>
-<code>goToConcept(id)</code>: sets <code>selectedId</code>, calls <code>navigate("/map")</code>,
+<code>goToConcept(id)</code>: sets <code>selectedId</code>, calls <code>navigate("/knowledge")</code>,
 then <code>viewRef.current.focusOn(id)</code> pans the graph so the node is centred.
 State survives navigation because it belongs to App, not to either page.
+</details>
+
+<details>
+<summary><b>Q: Why is there one stylesheet per page?</b></summary>
+The old single <code>app.css</code> grew past 2,500 lines. It was split by surface into nine files
+(<code>shell / knowledge / dashboard / memory / subjects / notes / landing / profile</code>) imported
+<b>once in <code>main.jsx</code></b>, in cascade order — so tokens always load first and no page can
+accidentally restyle another. Same rules, same order, smaller bundles.
+</details>
+
+<details>
+<summary><b>Q: The Notes UI came from a teammate. How was it merged without breaking anything?</b></summary>
+Only the Notes pieces were taken — never their <code>App.jsx</code>. Their stylesheet lives in
+<code>notes.css</code> with every rule scoped under <code>.nlib</code>, two colliding class names were
+renamed to <code>nl-*</code>, fonts were remapped to our tokens, and their state logic moved
+verbatim into <code>NotesPage.jsx</code> reading from <code>noteLibrary.js</code>. Retain360 stayed the source of truth.
 </details>
 
 <details>
@@ -380,10 +462,14 @@ self-clears → Dashboard activity list grows. Six re-renders from one setState 
 - [x] Interactive knowledge graph with semester bands
 - [x] Concept inspector with lineage + debt detection
 - [x] Quick Refresh loop with visible state change
-- [x] Router + Dashboard + Notes + Health + Subjects
+- [x] Router + Dashboard + Notes + Health + Subjects + Profile
+- [x] Premium SaaS landing page with scroll reveals
+- [x] Teammate Notes library integrated (masonry documents, drawer, pins)
+- [x] Graph rebuilt: drag-pan, cursor zoom, flowing edges, HUD
+- [x] Per-page stylesheets (9 files, cascade-ordered)
 - [x] Responsive layout (desktop-first)
 - [ ] Spaced-repetition scheduling on top of `retentionOverrides`
-- [ ] Per-student data files for team demos
+- [ ] Swap `noteLibrary.js` for a real API without touching components
 - [ ] Export map as PNG for study groups
 
 ---
@@ -392,6 +478,5 @@ self-clears → Dashboard activity list grows. Six re-renders from one setState 
 
 **Built by Team Retain360** · B.Tech CSE (AI & ML) · Frontend Engineering project
 
-*No backend was harmed in the making of this knowledge web.*
 
 </div>

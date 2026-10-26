@@ -16,12 +16,14 @@ export default function ConceptInspector({
   const prereqs = (concept.prerequisites || []).filter((id) => lookup[id])
   const usedLater = (concept.usedIn || []).filter((id) => lookup[id])
   const notes = notesFor(concept.id)
+  const status = concept.retention >= 75 ? "Strong" : concept.retention >= 55 ? "Steady" : "Fading"
 
   return (
     <aside className="inspector" aria-label="Concept inspector">
       <div className="inspector-head">
         <span className="micro">{subjectOf(concept.subject)}</span>
         <h2 className="inspector-title serif">{concept.name}</h2>
+        <span className="inspector-status pill">{status}</span>
         <p className="inspector-sub">
           Semester {concept.semester} · {subjectOf(concept.subject)}
         </p>
@@ -30,6 +32,8 @@ export default function ConceptInspector({
       <div className="hairline" />
 
       <div className="inspector-body">
+        <p className="inspector-desc">{concept.description}</p>
+
         <section className="inspector-section">
           <RetentionIndicator value={concept.retention} />
         </section>
@@ -66,6 +70,20 @@ export default function ConceptInspector({
           </section>
         )}
 
+        {status === "Fading" && usedLater.length > 0 && (
+          <p className="inspector-why">
+            <span className="micro">Why this matters</span>
+            This is a foundation for what comes next:
+            {usedLater
+              .slice(0, 2)
+              .map((id) => (
+                <span key={id} className="chip-sem">
+                  {lookup[id]?.name}
+                </span>
+              ))}
+          </p>
+        )}
+
         <KnowledgeLineage concept={concept} onSelectConcept={onSelectConcept} lookup={lookup} />
 
         <KnowledgeDebt concept={concept} onRefresh={onRefresh} lookup={lookup} />
@@ -81,8 +99,6 @@ export default function ConceptInspector({
             </>
           )}
         </section>
-
-        <p className="inspector-desc">{concept.description}</p>
       </div>
 
       <div className="inspector-foot">

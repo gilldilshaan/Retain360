@@ -1,0 +1,25 @@
+/* == subjects page == */
+/* ── subjects ── */
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 13px;
+}
+.subject-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  text-align: left;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 17px 18px;
+  transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+.subject-card:hover:not(:disabled) { border-color: var(--sage); transform: translateY(-2px); }
+.subject-card:disabled { opacity: 0.45; cursor: default; }
+.subject-count { font-size: 21px; }
+.subject-avg { font-size: 11.5px; color: var(--ink-soft); }
+
+

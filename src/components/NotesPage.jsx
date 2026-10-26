@@ -1,104 +1,203 @@
-import React, { useMemo, useState } from "react"
-import { notes } from "../data/notes.js"
-import { concepts } from "../data/concepts.js"
-import { semesters, subjectOf } from "../data/subjects.js"
-import { useApp } from "../context/AppContext.jsx"
+import React, { useState, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 
-// Search over your own notes. Plain filter() + map() — the results update
-// as you type because query is controlled state.
-export default function NotesPage(props = {}) {
-  const context = useApp()
-  const conceptsLiveById = props.conceptsLiveById ?? context.conceptsLiveById
-  const onSelectConcept = props.onSelectConcept ?? context.goToConcept
+import NotesHeader from "./notes/NotesHeader.jsx"
+import FilterBar from "./notes/FilterBar.jsx"
+import NotesGrid from "./notes/NotesGrid.jsx"
+import EmptyState from "./notes/EmptyState.jsx"
+import NoteDrawer from "./notes/NoteDrawer.jsx"
+import NoteFormModal from "./notes/NoteFormModal.jsx"
+import ConfirmModal from "./notes/ConfirmModal.jsx"
+
+import { useNotes } from "../store/useNotes.js"
+import { useToast } from "../context/ToastContext.jsx"
+import { SUBJECTS, SEMESTERS, FILE_TYPES } from "../data/noteLibrary.js"
+
+// The My Notes page.
+// The notes data now comes from NotesContext (shared + saved in localStorage)
+// and this page only keeps UI state: filters, sorting, which popup is open.
+export default function NotesPage() {
+  const navigate = useNavigate()
+  const { showToast } = useToast()
+  const {
+    notes,
+    pinnedIds,
+    togglePin,
+    recentSearches,
+    setRecentSearches,
+    addRecentSearch,
+    addNote,
+    updateNote,
+    deleteNote,
+    getRelatedNotes,
+  } = useNotes()
+
+  // ── search / filter / sort state ──
   const [query, setQuery] = useState("")
-  const [semester, setSemester] = useState("all")
-  const [subject, setSubject] = useState("all")
-  const [type, setType] = useState("all")
+  const [subjectFilter, setSubjectFilter] = useState("All")
+  const [semesterFilter, setSemesterFilter] = useState("All")
+  const [typeFilter, setTypeFilter] = useState("All")
+  const [pinnedOnly, setPinnedOnly] = useState(false)
+  const [sortBy, setSortBy] = useState("recent")
+  const [visibleNotes, setVisibleNotes] = useState(8)
 
-  // subjects that actually appear in the notes data
-  const noteSubjects = useMemo(
-    () => [...new Set(notes.map((n) => concepts.find((c) => c.id === n.conceptId)?.subject).filter(Boolean))],
-    []
-  )
+  // ── popup state ──
+  const [selectedId, setSelectedId] = useState(null) // which note is open in the drawer
+  const [formOpen, setFormOpen] = useState(false) // add/edit form
+  const [noteToEdit, setNoteToEdit] = useState(null) // null = adding a new note
+  const [noteToDelete, setNoteToDelete] = useState(null) // note waiting for delete confirmation
 
-  const results = useMemo(
-    () =>
-      notes.filter((n) => {
-        const concept = conceptsLiveById[n.conceptId]
-        if (!concept) return false
-        if (query.trim() && !n.title.toLowerCase().includes(query.trim().toLowerCase())) return false
-        if (semester !== "all" && String(concept.semester) !== String(semester)) return false
-        if (subject !== "all" && concept.subject !== subject) return false
-        if (type !== "all" && n.type !== type) return false
-        return true
-      }),
-    [query, semester, subject, type, conceptsLiveById]
-  )
+  // ── filtering + sorting ──
+  // useMemo: only redo this work when one of the values in the [ ] list changes
+  const filteredNotes = useMemo(() => {
+    const searchText = query.trim().toLowerCase()
+
+    // step 1: keep only the notes that match every filter
+    const result = notes.filter((note) => {
+      const matchesSearch =
+        searchText === "" ||
+        note.title.toLowerCase().includes(searchText) ||
+        note.subject.toLowerCase().includes(searchText) ||
+        (note.content || "").toLowerCase().includes(searchText) || // also search inside the written note
+        note.tags.some((tag) => tag.toLowerCase().includes(searchText))
+
+      const matchesSubject = subjectFilter === "All" || note.subject === subjectFilter
+      const matchesSemester = semesterFilter === "All" || note.semester === semesterFilter
+      const matchesType = typeFilter === "All" || note.type === typeFilter
+      const matchesPinned = !pinnedOnly || pinnedIds.includes(note.id)
+
+      return matchesSearch && matchesSubject && matchesSemester && matchesType && matchesPinned
+    })
+
+    // step 2: sort. We copy the list first ([...result]) so we never change the original.
+    const sorted = [...result]
+    if (sortBy === "recent") {
+      sorted.sort((a, b) => b.updatedAt - a.updatedAt) // newest first
+    } else if (sortBy === "title") {
+      sorted.sort((a, b) => a.title.localeCompare(b.title)) // A to Z
+    } else if (sortBy === "semester") {
+      sorted.sort((a, b) => a.semester - b.semester) // sem 1 first
+    }
+
+    return sorted
+  }, [notes, query, subjectFilter, semesterFilter, typeFilter, pinnedOnly, pinnedIds, sortBy])
+
+  // ── the note shown in the drawer ──
+  const selectedNote = notes.find((note) => note.id === selectedId) || null
+  const relatedNotes = selectedNote ? getRelatedNotes(selectedNote) : []
+
+  // ── actions ──
+  const openInDrawer = (note) => setSelectedId(note.id)
+  const openFullPage = (note) => navigate(`/notes/${note.id}`) // goes to the dynamic route
+
+  const handleSearch = () => addRecentSearch(query)
+
+  const openAddForm = () => {
+    setNoteToEdit(null)
+    setFormOpen(true)
+  }
+
+  const openEditForm = (note) => {
+    setSelectedId(null) // close the drawer first
+    setNoteToEdit(note)
+    setFormOpen(true)
+  }
+
+  const closeForm = () => {
+    setFormOpen(false)
+    setNoteToEdit(null)
+  }
+
+  // called by the form after validation passes
+  const handleSave = (data, fileChange) => {
+    if (noteToEdit) {
+      updateNote(noteToEdit.id, data, fileChange)
+      showToast("Note updated")
+    } else {
+      const created = addNote(data, fileChange?.file)
+      showToast("Note added. Start writing!")
+      closeForm()
+      navigate(`/notes/${created.id}`) // open the new note so the user can write in it
+      return
+    }
+    closeForm()
+  }
+
+  const handleDeleteConfirmed = () => {
+    deleteNote(noteToDelete.id)
+    showToast("Note deleted")
+    setNoteToDelete(null)
+    setSelectedId(null)
+  }
 
   return (
-    <div className="page">
-      <div className="notes-controls">
-        <input
-          className="notes-search"
-          type="text"
-          placeholder="Search your academic notes..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search your academic notes"
-        />
-        <select value={semester} onChange={(e) => setSemester(e.target.value)} aria-label="Filter by semester">
-          <option value="all">Semester</option>
-          {semesters.map((s) => (
-            <option key={s.id} value={s.id}>
-              Semester {s.id}
-            </option>
-          ))}
-        </select>
-        <select value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Filter by subject">
-          <option value="all">Subject</option>
-          {noteSubjects.map((id) => (
-            <option key={id} value={id}>
-              {subjectOf(id)}
-            </option>
-          ))}
-        </select>
-        <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Filter by type">
-          <option value="all">Type</option>
-          <option value="PDF">PDF</option>
-          <option value="Slides">Slides</option>
-          <option value="Notebook">Notebook</option>
-        </select>
-      </div>
+    <div className="nlib">
+      <NotesHeader
+        query={query}
+        setQuery={setQuery}
+        recentSearches={recentSearches}
+        setRecentSearches={setRecentSearches}
+        onSearch={handleSearch}
+        onAdd={openAddForm}
+      />
 
-      <p className="results-count micro">
-        {results.length} result{results.length !== 1 ? "s" : ""}
-      </p>
+      <FilterBar
+        subjectFilter={subjectFilter}
+        setSubjectFilter={setSubjectFilter}
+        semesterFilter={semesterFilter}
+        setSemesterFilter={setSemesterFilter}
+        typeFilter={typeFilter}
+        setTypeFilter={setTypeFilter}
+        pinnedOnly={pinnedOnly}
+        setPinnedOnly={setPinnedOnly}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        pinnedIds={pinnedIds}
+        subjects={SUBJECTS}
+        semesters={SEMESTERS}
+        fileTypes={FILE_TYPES}
+        resultCount={filteredNotes.length}
+        totalCount={notes.length}
+      />
 
-      {results.length === 0 ? (
-        <div className="empty-state">
-          <h3 className="serif">No notes found.</h3>
-          <p>Try another search.</p>
-        </div>
+      {filteredNotes.length > 0 ? (
+        <>
+          <NotesGrid
+            notes={filteredNotes.slice(0, visibleNotes)}
+            pinnedIds={pinnedIds}
+            onPin={togglePin}
+            onOpen={openInDrawer}
+            onView={openFullPage}
+          />
+
+          {filteredNotes.length > visibleNotes && (
+            <div className="see-more-wrapper">
+              <button className="see-more-btn" onClick={() => setVisibleNotes(visibleNotes + 4)}>
+                See more<span>↓</span>
+              </button>
+            </div>
+          )}
+        </>
       ) : (
-        <ul className="note-results">
-          {results.map((n) => {
-            const concept = conceptsLiveById[n.conceptId]
-            return (
-              <li key={n.id}>
-                <button type="button" className="note-result" onClick={() => onSelectConcept(n.conceptId)}>
-                  <span className="nr-title">{n.title}</span>
-                  <span className="nr-meta">
-                    {concept.name} · {subjectOf(concept.subject)} · Semester {concept.semester}
-                  </span>
-                  <span className="nr-source">
-                    {n.type} · {n.source}
-                  </span>
-                  <span className="nr-snippet">“{n.body.slice(0, 90)}…”</span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+        <EmptyState query={query} />
+      )}
+
+      <NoteDrawer
+        note={selectedNote}
+        relatedNotes={relatedNotes}
+        isPinned={selectedNote ? pinnedIds.includes(selectedNote.id) : false}
+        onClose={() => setSelectedId(null)}
+        onPin={togglePin}
+        onOpen={openFullPage}
+        onRelatedClick={setSelectedId}
+        onEdit={openEditForm}
+        onDelete={setNoteToDelete}
+      />
+
+      {formOpen && <NoteFormModal note={noteToEdit} onSave={handleSave} onClose={closeForm} />}
+
+      {noteToDelete && (
+        <ConfirmModal note={noteToDelete} onConfirm={handleDeleteConfirmed} onCancel={() => setNoteToDelete(null)} />
       )}
     </div>
   )
