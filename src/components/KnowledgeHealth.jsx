@@ -1,9 +1,13 @@
 import React, { useMemo } from "react"
 import RetentionIndicator from "./RetentionIndicator.jsx"
 import { subjectOf } from "../data/subjects.js"
+import { useApp } from "../context/AppContext.jsx"
 
 // A simple health report: one average, three counts, and the fading list.
-export default function KnowledgeHealth({ conceptsLive, onSelectConcept }) {
+export default function KnowledgeHealth(props = {}) {
+  const context = useApp()
+  const conceptsLive = props.conceptsLive ?? context.conceptsLive
+  const onSelectConcept = props.onSelectConcept ?? context.goToConcept
   const report = useMemo(() => {
     const avg = Math.round(conceptsLive.reduce((s, c) => s + c.retention, 0) / conceptsLive.length)
     const strong = conceptsLive.filter((c) => c.status === "strong").length

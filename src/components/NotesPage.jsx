@@ -2,10 +2,14 @@ import React, { useMemo, useState } from "react"
 import { notes } from "../data/notes.js"
 import { concepts } from "../data/concepts.js"
 import { semesters, subjectOf } from "../data/subjects.js"
+import { useApp } from "../context/AppContext.jsx"
 
 // Search over your own notes. Plain filter() + map() — the results update
 // as you type because query is controlled state.
-export default function NotesPage({ conceptsLiveById, onSelectConcept }) {
+export default function NotesPage(props = {}) {
+  const context = useApp()
+  const conceptsLiveById = props.conceptsLiveById ?? context.conceptsLiveById
+  const onSelectConcept = props.onSelectConcept ?? context.goToConcept
   const [query, setQuery] = useState("")
   const [semester, setSemester] = useState("all")
   const [subject, setSubject] = useState("all")

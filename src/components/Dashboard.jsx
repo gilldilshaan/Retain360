@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import StatCard from "./dashboard/StatCard.jsx"
@@ -7,9 +7,18 @@ import { buildNotifications } from "./dashboard/NotificationsPanel.jsx"
 import { notes } from "../data/notes.js"
 import { semesters } from "../data/subjects.js"
 import { CURRENT_SEMESTER, profile } from "../data/profile.js"
+import { useApp } from "../context/AppContext.jsx"
 
-export default function Dashboard({ conceptsLive, conceptsLiveById, activities, notifications, onExplore }) {
+export default function Dashboard(props = {}) {
+  const context = useApp()
+  const conceptsLive = props.conceptsLive ?? context.conceptsLive
+  const conceptsLiveById = props.conceptsLiveById ?? context.conceptsLiveById
+  const activities = props.activities ?? context.activities
+  const notifications = props.notifications ?? context.notifications
+  const onExplore = props.onExplore ?? context.goToConcept
+  const onRefresh = props.onRefresh ?? context.setRefreshId
   const navigate = useNavigate()
+  const [revisionCategory, setRevisionCategory] = useState("needs-revision")
 
   const stats = useMemo(() => {
     const total = conceptsLive.length
@@ -18,15 +27,41 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
     return { total, fading, health }
   }, [conceptsLive])
 
-  // retention < 50 → Needs Revision, otherwise Review Soon
+  // Category 1: Needs Revision (retention < 65, sorted ascending by retention)
   const reviseList = useMemo(
     () =>
       conceptsLive
         .filter((c) => c.retention < 65)
-        .sort((a, b) => a.retention - b.retention)
-        .slice(0, 6),
+        .sort((a, b) => a.retention - b.retention),
     [conceptsLive]
   )
+
+  // Category 2: Recently Reviewed (concepts that have been reviewed in this session)
+  const recentlyReviewed = useMemo(() => {
+    const reviewedIds = activities
+      .filter((a) => a.icon === "✓" && a.conceptId)
+      .map((a) => a.conceptId)
+    const uniqueIds = [...new Set(reviewedIds)]
+    return uniqueIds.map((id) => conceptsLiveById[id]).filter(Boolean)
+  }, [activities, conceptsLiveById])
+
+  // Category 3: All Concepts (sorted by retention ascending to surface weaker material)
+  const allConceptsSorted = useMemo(
+    () => [...conceptsLive].sort((a, b) => a.retention - b.retention),
+    [conceptsLive]
+  )
+
+  const displayedRevisionList = useMemo(() => {
+    switch (revisionCategory) {
+      case "recently-reviewed":
+        return recentlyReviewed
+      case "all":
+        return allConceptsSorted.slice(0, 8)
+      case "needs-revision":
+      default:
+        return reviseList.slice(0, 6)
+    }
+  }, [revisionCategory, recentlyReviewed, allConceptsSorted, reviseList])
 
   // mock recommendation: a weak concept that unlocks stronger material later
   const recommended = useMemo(() => {
@@ -118,9 +153,22 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
                 </p>
               )}
               <span className="rec-note micro">Suggested from your own graph — not AI.</span>
-              <button type="button" className="btn btn-primary" onClick={() => onExplore(recommended.id)}>
-                Revise Now →
-              </button>
+              <div className="dash-card-actions">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => (onRefresh ? onRefresh(recommended.id) : onExplore(recommended.id))}
+                >
+                  Quick Refresh →
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  onClick={() => onExplore(recommended.id)}
+                >
+                  Explore in Web
+                </button>
+              </div>
             </>
           ) : (
             <p className="muted-note">Nothing needs special attention right now.</p>
@@ -143,31 +191,102 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
       </article>
 
       <section className="dash-grid">
-        {/* needs revision */}
+        {/* concept revision */}
         <article className="panel-card">
           <div className="panel-head">
-            <span className="micro">Needs Revision</span>
-            <button type="button" className="link-btn" onClick={() => navigate("/memory")}>
+            <span className="micro">Concept Revision</span>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => navigate(revisionCategory === "all" ? "/knowledge" : "/memory")}
+            >
               View all
             </button>
           </div>
-          {reviseList.length === 0 ? (
-            <p className="muted-note">Everything is holding steady. Nice work.</p>
+
+          <div className="revision-tabs" role="tablist" aria-label="Revision categories">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={revisionCategory === "needs-revision"}
+              className={`rev-tab${revisionCategory === "needs-revision" ? " active" : ""}`}
+              onClick={() => setRevisionCategory("needs-revision")}
+            >
+              Needs Revision ({reviseList.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={revisionCategory === "recently-reviewed"}
+              className={`rev-tab${revisionCategory === "recently-reviewed" ? " active" : ""}`}
+              onClick={() => setRevisionCategory("recently-reviewed")}
+            >
+              Recently Reviewed ({recentlyReviewed.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={revisionCategory === "all"}
+              className={`rev-tab${revisionCategory === "all" ? " active" : ""}`}
+              onClick={() => setRevisionCategory("all")}
+            >
+              All Concepts ({conceptsLive.length})
+            </button>
+          </div>
+
+          {displayedRevisionList.length === 0 ? (
+            <p className="muted-note">
+              {revisionCategory === "recently-reviewed"
+                ? "No concepts reviewed yet in this session. Start a quick refresh on any concept below."
+                : "Everything is holding steady. Nice work."}
+            </p>
           ) : (
             <ul className="attention-list">
-              {reviseList.map((c) => (
-                <li key={c.id}>
-                  <button type="button" className="attention-row" onClick={() => onExplore(c.id)}>
-                    <span className="attention-name">{c.name}</span>
-                    <span className="attention-side">
-                      <span className={`badge ${c.retention < 50 ? "urgent" : "soon"}`}>
-                        {c.retention < 50 ? "Needs Revision" : "Review Soon"}
-                      </span>
-                      <span className="attention-pct">{c.retention}%</span>
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {displayedRevisionList.map((c) => {
+                const isUrgent = c.retention < 50
+                const isSoon = c.retention >= 50 && c.retention < 65
+                const badgeLabel = isUrgent
+                  ? "Needs Revision"
+                  : isSoon
+                  ? "Review Soon"
+                  : c.retention >= 75
+                  ? "Strong"
+                  : "Steady"
+                const badgeClass = isUrgent ? "urgent" : isSoon ? "soon" : "steady"
+
+                return (
+                  <li key={c.id} className="attention-item">
+                    <div className="attention-row">
+                      <button
+                        type="button"
+                        className="attention-main-btn"
+                        onClick={() => onExplore(c.id)}
+                        title={`Explore ${c.name} on Knowledge Web`}
+                      >
+                        <span className="attention-name">{c.name}</span>
+                        <span className="micro attention-sem">SEM {c.semester}</span>
+                      </button>
+                      <div className="attention-side">
+                        <span className={`badge ${badgeClass}`}>{badgeLabel}</span>
+                        <span className="attention-pct">{c.retention}%</span>
+                        {onRefresh && (
+                          <button
+                            type="button"
+                            className="rev-action-btn"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onRefresh(c.id)
+                            }}
+                            title={`Quick refresh ${c.name}`}
+                          >
+                            Review
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </article>
@@ -203,10 +322,25 @@ export default function Dashboard({ conceptsLive, conceptsLiveById, activities, 
           </div>
           <ul className="activity-list">
             {activities.slice(0, 5).map((a) => (
-              <li key={a.id} className="activity-row">
-                <span className={`activity-icon${a.icon === "✓" ? " done" : ""}`}>{a.icon}</span>
-                <span className="activity-text">{a.text}</span>
-                <span className="activity-when">{a.when}</span>
+              <li key={a.id}>
+                {a.conceptId ? (
+                  <button
+                    type="button"
+                    className="activity-row activity-btn"
+                    onClick={() => onExplore(a.conceptId)}
+                    title={`Explore ${a.text.replace(/^(Reviewed|Explored|Opened)\s+/, "")} on Knowledge Web`}
+                  >
+                    <span className={`activity-icon${a.icon === "✓" ? " done" : ""}`}>{a.icon}</span>
+                    <span className="activity-text">{a.text}</span>
+                    <span className="activity-when">{a.when}</span>
+                  </button>
+                ) : (
+                  <div className="activity-row">
+                    <span className={`activity-icon${a.icon === "✓" ? " done" : ""}`}>{a.icon}</span>
+                    <span className="activity-text">{a.text}</span>
+                    <span className="activity-when">{a.when}</span>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

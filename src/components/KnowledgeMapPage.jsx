@@ -31,18 +31,6 @@ export default function KnowledgeMapPage({
   viewRef,
   onRefresh,
 }) {
-  // ⌘K / Ctrl+K opens concept search (map page only)
-  useEffect(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault()
-        setSearchOpen((o) => !o)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [setSearchOpen])
-
   const resetFilters = () => {
     setSemesterFilter("all")
     setSubjectFilter("all")
@@ -138,7 +126,7 @@ export default function KnowledgeMapPage({
       </div>
 
       <SearchConcepts
-        concepts={concepts}
+        concepts={conceptsLive}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelect={(id) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom"
 
 import Sidebar from "./components/Sidebar.jsx"
@@ -12,9 +12,9 @@ import RefreshModal from "./components/RefreshModal.jsx"
 import LandingPage from "./components/LandingPage.jsx"
 import SearchPage from "./components/SearchPage.jsx"
 import ProfilePage from "./components/ProfilePage.jsx"
-import { buildNotifications } from "./components/dashboard/NotificationsPanel.jsx"
 
-import { concepts, conceptsById } from "./data/concepts.js"
+import { conceptsById } from "./data/concepts.js"
+import { AppProvider, useApp } from "./context/AppContext.jsx"
 
 const PAGE_META = {
   "/dashboard": { eyebrow: "My Knowledge", title: "Dashboard", sub: "Your whole degree, one connected system." },
@@ -26,85 +26,68 @@ const PAGE_META = {
   "/profile": { eyebrow: "Account", title: "Profile", sub: "Your academic snapshot at a glance." },
 }
 
-// BrowserRouter is provided in main.jsx; this component uses useLocation/useNavigate.
-export default function App() {
-  // ── graph state (single source of truth for the whole app) ──
-  const [selectedId, setSelectedId] = useState(null)
+function AppContent() {
+  const {
+    conceptsLive,
+    conceptsLiveById,
+    selectedId,
+    setSelectedId,
+    viewRef,
+    refreshId,
+    setRefreshId,
+    handleReviewed,
+    retentionOverrides,
+    toast,
+    notifications,
+  } = useApp()
+
+  // ── Graph visualization filter state local to knowledge map ──
   const [hoveredId, setHoveredId] = useState(null)
   const [semesterFilter, setSemesterFilter] = useState("all")
   const [subjectFilter, setSubjectFilter] = useState("all")
   const [showPrerequisites, setShowPrerequisites] = useState(true)
   const [showRelated, setShowRelated] = useState(true)
 
-  // ── ui state ──
+  // ── In-map search overlay and mobile navigation state ──
   const [searchOpen, setSearchOpen] = useState(false)
-  const [refreshId, setRefreshId] = useState(null)
-  const [retentionOverrides, setRetentionOverrides] = useState({})
-  const [toast, setToast] = useState(null)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const viewRef = useRef(null)
-
-  // ── recent activity (mock list, grows when you review a concept) ──
-  const [activities, setActivities] = useState([
-    { id: "a2", icon: "→", text: "Explored Neural Networks", when: "Today" },
-    { id: "a1", icon: "→", text: "Opened Mathematics", when: "Yesterday" },
-  ])
 
   const location = useLocation()
   const navigate = useNavigate()
   const pageMeta = PAGE_META[location.pathname] || PAGE_META["/dashboard"]
-  const onKnowledgePage = location.pathname === "/knowledge"
 
+  const handleOpenSearch = useCallback(() => {
+    if (location.pathname === "/knowledge") {
+      setSearchOpen((o) => !o)
+    } else if (location.pathname === "/search") {
+      const searchInput = document.querySelector(".notes-search")
+      if (searchInput) {
+        searchInput.focus()
+        searchInput.select?.()
+      }
+    } else {
+      navigate("/search")
+    }
+  }, [location.pathname, navigate])
+
+  // Global ⌘K / Ctrl+K keyboard shortcut:
+  // On knowledge map, toggles in-map search overlay.
+  // On search page, focuses and selects search input.
+  // Anywhere else, navigates to the dedicated /search page.
   useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(null), 2600)
-    return () => clearTimeout(t)
-  }, [toast])
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault()
+        handleOpenSearch()
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [handleOpenSearch])
 
   useEffect(() => {
     setMobileNavOpen(false)
   }, [location.pathname])
-
-  // ── retention values with any "mark as reviewed" overrides applied ──
-  const conceptsLive = useMemo(
-    () =>
-      concepts.map((c) =>
-        retentionOverrides[c.id] !== undefined ? { ...c, retention: retentionOverrides[c.id] } : c
-      ),
-    [retentionOverrides]
-  )
-  const conceptsLiveById = useMemo(
-    () => Object.fromEntries(conceptsLive.map((c) => [c.id, c])),
-    [conceptsLive]
-  )
-
-  const notifications = useMemo(() => buildNotifications(conceptsLive), [conceptsLive])
-
-  // ── shared actions ──
-
-  // Used by Dashboard / Notes / Health / Subjects / Search:
-  // select a concept and land on its node in the knowledge web.
-  const goToConcept = useCallback(
-    (id) => {
-      setSelectedId(id)
-      navigate("/knowledge")
-      requestAnimationFrame(() => viewRef.current?.focusOn(id))
-    },
-    [navigate]
-  )
-
-  const handleReviewed = useCallback((id) => {
-    setRetentionOverrides((prev) => ({
-      ...prev,
-      [id]: Math.min(100, Math.round(((prev[id] ?? conceptsById[id]?.retention) ?? 50) + 14)),
-    }))
-    setToast(`${conceptsById[id]?.name} reviewed — retention updated`)
-    setRefreshId(null)
-    setActivities((prev) => [
-      { id: `a${Date.now()}`, icon: "✓", text: `Reviewed ${conceptsById[id]?.name}`, when: "Just now" },
-      ...prev,
-    ])
-  }, [])
 
   // The landing page renders standalone, outside the app frame.
   if (location.pathname === "/") {
@@ -126,24 +109,13 @@ export default function App() {
       <main className="main">
         <TopHeader
           meta={pageMeta}
-          onOpenSearch={onKnowledgePage ? () => setSearchOpen((o) => !o) : undefined}
+          onOpenSearch={handleOpenSearch}
           onToggleNav={() => setMobileNavOpen((o) => !o)}
           notifications={notifications}
         />
 
         <Routes>
-          <Route
-            path="/dashboard"
-            element={
-              <Dashboard
-                conceptsLive={conceptsLive}
-                conceptsLiveById={conceptsLiveById}
-                activities={activities}
-                notifications={notifications}
-                onExplore={goToConcept}
-              />
-            }
-          />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route
             path="/knowledge"
             element={
@@ -169,11 +141,8 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/memory"
-            element={<KnowledgeHealth conceptsLive={conceptsLive} onSelectConcept={goToConcept} />}
-          />
-          <Route path="/notes" element={<NotesPage conceptsLiveById={conceptsLiveById} onSelectConcept={goToConcept} />} />
+          <Route path="/memory" element={<KnowledgeHealth />} />
+          <Route path="/notes" element={<NotesPage />} />
           <Route
             path="/subjects"
             element={
@@ -187,11 +156,8 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/search"
-            element={<SearchPage conceptsLiveById={conceptsLiveById} onExplore={goToConcept} />}
-          />
-          <Route path="/profile" element={<ProfilePage conceptsLive={conceptsLive} />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
 
           {/* compatibility redirects */}
           <Route path="/map" element={<Navigate to="/knowledge" replace />} />
@@ -216,5 +182,13 @@ export default function App() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
   )
 }

@@ -4,8 +4,11 @@ import RetentionIndicator from "./RetentionIndicator.jsx"
 import { notes } from "../data/notes.js"
 import { subjects } from "../data/subjects.js"
 import { profile } from "../data/profile.js"
+import { useApp } from "../context/AppContext.jsx"
 
-export default function ProfilePage({ conceptsLive }) {
+export default function ProfilePage(props = {}) {
+  const context = useApp()
+  const conceptsLive = props.conceptsLive ?? context.conceptsLive
   const stats = useMemo(() => {
     const health = Math.round(conceptsLive.reduce((sum, c) => sum + c.retention, 0) / conceptsLive.length)
     const learned = conceptsLive.filter((c) => c.retention >= 55).length
