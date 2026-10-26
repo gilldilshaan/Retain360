@@ -7,7 +7,7 @@ import NoteFormModal from "./notes/NoteFormModal.jsx"
 import NoteEditor from "./notes/NoteEditor.jsx"
 import NoteAttachment from "./notes/NoteAttachment.jsx"
 import ConfirmModal from "./notes/ConfirmModal.jsx"
-import { useNotes } from "../context/NotesContext.jsx"
+import { useNotes } from "../store/useNotes.js"
 import { useToast } from "../context/ToastContext.jsx"
 
 // Page for ONE note, shown at the URL /notes/:noteId  (a dynamic route).
