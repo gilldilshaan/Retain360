@@ -1,9 +1,10 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
+import { Provider } from "react-redux"
 import App from "./App.jsx"
 import { ToastProvider } from "./context/ToastContext.jsx"
-import { NotesProvider } from "./context/NotesContext.jsx"
+import { store } from "./store/store.js"
 import "./styles/global.css"
 
 // one stylesheet per surface — imported in cascade order
@@ -20,12 +21,12 @@ import "./styles/profile.css"      // profile page + menu
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* providers wrap the app so every page can use toast + notes */}
-      <ToastProvider>
-        <NotesProvider>
+      {/* Redux store -> notes data | ToastProvider (Context) -> toast messages */}
+      <Provider store={store}>
+        <ToastProvider>
           <App />
-        </NotesProvider>
-      </ToastProvider>
+        </ToastProvider>
+      </Provider>
     </BrowserRouter>
   </React.StrictMode>
 )

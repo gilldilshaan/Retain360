@@ -3,8 +3,8 @@ import { useState, useEffect } from "react"
 // A custom hook that works exactly like useState,
 // but it also saves the value in the browser (localStorage).
 // So when the page is refreshed, the data does not disappear.
-//
-// Usage:  const [notes, setNotes] = useLocalStorage("my-key", [])
+
+
 export default function useLocalStorage(key, initialValue) {
   // 1. Start with the saved value if there is one, otherwise use the default
   const [value, setValue] = useState(() => {

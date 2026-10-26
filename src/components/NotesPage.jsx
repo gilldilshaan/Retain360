@@ -9,7 +9,7 @@ import NoteDrawer from "./notes/NoteDrawer.jsx"
 import NoteFormModal from "./notes/NoteFormModal.jsx"
 import ConfirmModal from "./notes/ConfirmModal.jsx"
 
-import { useNotes } from "../context/NotesContext.jsx"
+import { useNotes } from "../store/useNotes.js"
 import { useToast } from "../context/ToastContext.jsx"
 import { SUBJECTS, SEMESTERS, FILE_TYPES } from "../data/noteLibrary.js"
 
