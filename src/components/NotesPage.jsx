@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
+import useDebounce from "../hooks/useDebounce";
 
 import NotesHeader from "./notes/NotesHeader.jsx"
 import FilterBar from "./notes/FilterBar.jsx"
@@ -34,6 +35,7 @@ export default function NotesPage() {
 
   // ── search / filter / sort state ──
   const [query, setQuery] = useState("")
+  const debouncedQuery = useDebounce(query, 500);
   const [subjectFilter, setSubjectFilter] = useState("All")
   const [semesterFilter, setSemesterFilter] = useState("All")
   const [typeFilter, setTypeFilter] = useState("All")
@@ -50,7 +52,7 @@ export default function NotesPage() {
   // ── filtering + sorting ──
   // useMemo: only redo this work when one of the values in the [ ] list changes
   const filteredNotes = useMemo(() => {
-    const searchText = query.trim().toLowerCase()
+    const searchText = debouncedQuery.trim().toLowerCase()
 
     // step 1: keep only the notes that match every filter
     const result = notes.filter((note) => {
@@ -80,7 +82,7 @@ export default function NotesPage() {
     }
 
     return sorted
-  }, [notes, query, subjectFilter, semesterFilter, typeFilter, pinnedOnly, pinnedIds, sortBy])
+  }, [notes, debouncedQuery, subjectFilter, semesterFilter, typeFilter, pinnedOnly, pinnedIds, sortBy])
 
   // ── the note shown in the drawer ──
   const selectedNote = notes.find((note) => note.id === selectedId) || null

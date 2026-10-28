@@ -4,8 +4,11 @@ import { usePreferences } from "../context/PreferencesContext"
 import NotificationsPanel from "./dashboard/NotificationsPanel.jsx"
 import ProfileMenu from "./dashboard/ProfileMenu.jsx"
 import { profile } from "../data/profile.js"
+import { useApp } from "../context/AppContext.jsx"
 
-export default function TopHeader({ meta, onOpenSearch, onToggleNav, notifications }) {
+export default function TopHeader({ meta, onOpenSearch, onToggleNav, notifications: propNotifications }) {
+  const context = useApp()
+  const notifications = propNotifications ?? context?.notifications ?? []
   const [notifOpen, setNotifOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { theme, setThemePref } = usePreferences()
