@@ -35,6 +35,13 @@ export default function KnowledgeGraph({
   showPrerequisites,
   showRelated,
   viewRef,
+  bookmarkedIds,
+  masteredIds,
+  bookmarkConcept,
+  unbookmarkConcept,
+  masterConcept,
+  unmasterConcept,
+  selectConcept,
 }) {
   const areaRef = useRef(null)
   const [view, setView] = useState({ s: 0.62, tx: 0, ty: 0 })
@@ -253,6 +260,12 @@ export default function KnowledgeGraph({
               onSelect={() => onSelect(concept.id)}
               onHover={() => onHover(concept.id)}
               onLeave={() => onHover(null)}
+              bookmarkedIds={bookmarkedIds}
+              masteredIds={masteredIds}
+              bookmarkConcept={bookmarkConcept}
+              unbookmarkConcept={unbookmarkConcept}
+              masterConcept={masterConcept}
+              unmasterConcept={unmasterConcept}
             />
           )
         })}
@@ -269,10 +282,29 @@ export default function KnowledgeGraph({
   )
 }
 
-function GraphNode({ concept, pos, order, selected, highlighted, dimmed, onSelect, onHover, onLeave }) {
+function GraphNode({
+  concept,
+  pos,
+  order,
+  selected,
+  highlighted,
+  dimmed,
+  onSelect,
+  onHover,
+  onLeave,
+  bookmarkedIds,
+  masteredIds,
+  bookmarkConcept,
+  unbookmarkConcept,
+  masterConcept,
+  unmasterConcept,
+}) {
   const cls = ["g-node", selected && "selected", highlighted && "highlighted", dimmed && "dim"]
     .filter(Boolean)
     .join(" ")
+
+  const isBookmarked = bookmarkedIds.includes(concept.id)
+  const isMastered = masteredIds.includes(concept.id)
 
   return (
     <button
@@ -302,6 +334,18 @@ function GraphNode({ concept, pos, order, selected, highlighted, dimmed, onSelec
         <span className="node-meta">
           {subjectOf(concept.subject)} · {concept.retention}%
         </span>
+      </span>
+      <span className="node-actions">
+        {isBookmarked ? (
+          <span title="Unbookmark" onClick={(e) => { e.stopPropagation(); unbookmarkConcept(concept.id) }} className="node-action-btn">☆</span>
+        ) : (
+          <span title="Bookmark" onClick={(e) => { e.stopPropagation(); bookmarkConcept(concept.id) }} className="node-action-btn">☆</span>
+        )}
+        {isMastered ? (
+          <span title="Unmaster" onClick={(e) => { e.stopPropagation(); unmasterConcept(concept.id) }} className="node-action-btn">★</span>
+        ) : (
+          <span title="Master" onClick={(e) => { e.stopPropagation(); masterConcept(concept.id) }} className="node-action-btn">★</span>
+        )}
       </span>
     </button>
   )

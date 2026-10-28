@@ -132,3 +132,16 @@ export const UserIcon = (p) => (
     <path d="M5.5 19 c1.4 -3.2 3.8 -4.6 6.5 -4.6 s5.1 1.4 6.5 4.6" />
   </svg>
 )
+
+export const MoonIcon = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="12" r="5" />
+  </svg>
+)
+
+export const SunIcon = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="12" r="5" />
+    <path d="M12 2 L2 12 L2 22 L12 12 L2 2 L2 12 L2 22 L12 12 L2 2" />
+  </svg>
+)

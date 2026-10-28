@@ -1,5 +1,6 @@
-import React, { useState } from "react"
-import { SearchIcon, BellIcon } from "./Icons.jsx"
+import React from "react"
+import { SearchIcon, BellIcon, MoonIcon, SunIcon } from "./Icons.jsx"
+import { usePreferences } from "../context/PreferencesContext"
 import NotificationsPanel from "./dashboard/NotificationsPanel.jsx"
 import ProfileMenu from "./dashboard/ProfileMenu.jsx"
 import { profile } from "../data/profile.js"
@@ -10,6 +11,9 @@ export default function TopHeader({ meta, onOpenSearch, onToggleNav, notificatio
   const notifications = propNotifications ?? context?.notifications ?? []
   const [notifOpen, setNotifOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const { theme, setThemePref } = usePreferences()
+  const moonIcon = theme === "dark" ? MoonIcon : SunIcon
+  const sunIcon = theme === "light" ? SunIcon : MoonIcon
 
   const toggleNotif = () => {
     setMenuOpen(false)
@@ -19,6 +23,10 @@ export default function TopHeader({ meta, onOpenSearch, onToggleNav, notificatio
   const toggleMenu = () => {
     setNotifOpen(false)
     setMenuOpen((o) => !o)
+  }
+
+  const toggleTheme = () => {
+    setThemePref(theme === "light" ? "dark" : "light")
   }
 
   return (
@@ -72,6 +80,17 @@ export default function TopHeader({ meta, onOpenSearch, onToggleNav, notificatio
             <span aria-hidden="true">{profile.initials}</span>
           </button>
           <ProfileMenu open={menuOpen} onClose={toggleMenu} />
+        </span>
+
+        <span className="pop-anchor">
+          <button
+            type="button"
+            className={`icon-btn${notifOpen ? " active" : ""}`}
+            aria-label="Toggle theme"
+            onClick={toggleTheme}
+          >
+            {moonIcon} {sunIcon}
+          </button>
         </span>
       </div>
     </header>

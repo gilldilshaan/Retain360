@@ -84,19 +84,20 @@ export default function NoteFormModal({ note, onSave, onClose }) {
   const validate = () => {
     const newErrors = {}
 
-    if (form.title.trim() === "") {
-      newErrors.title = "Title is required"
-    } else if (form.title.trim().length < 3) {
-      newErrors.title = "Title must be at least 3 characters"
-    }
+    // Title: required (shared validator) + minLength 3 (shared validator)
+    if (required(form.title)) newErrors.title = required(form.title)
+    else newErrors.title = minLength(3)(form.title)
 
+    // Subject: must choose
     if (form.subject === "") newErrors.subject = "Please choose a subject"
     if (form.semester === "") newErrors.semester = "Please choose a semester"
 
+    // Preview: at least 10 characters
     if (form.preview.trim().length < 10) {
       newErrors.preview = "Write a short summary (at least 10 characters)"
     }
 
+    // Tags: max 5
     if (splitTags(form.tags).length > 5) {
       newErrors.tags = "You can add a maximum of 5 tags"
     }

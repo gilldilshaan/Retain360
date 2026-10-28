@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit"
 import notesReducer, { loadNotesState, STORAGE_KEYS } from "./notesSlice.js"
+import conceptsReducer from "./conceptsSlice.js"
 
 // The one Redux store for the app.
-// Right now it only has the "notes" slice; more slices can be added later.
+// Right now it has the "notes" and "concepts" slices; more slices can be added later.
 export const store = configureStore({
   reducer: {
     notes: notesReducer,
+    concepts: conceptsReducer,
   },
   // start from what was saved in localStorage (or the sample notes)
   preloadedState: {
