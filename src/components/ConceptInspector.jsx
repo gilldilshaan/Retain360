@@ -1,9 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useCallback } from "react"
+import { usePreferences } from "../context/PreferencesContext"
 import RetentionIndicator from "./RetentionIndicator.jsx"
 import KnowledgeLineage from "./KnowledgeLineage.jsx"
 import KnowledgeDebt from "./KnowledgeDebt.jsx"
 import { subjectOf } from "../data/subjects.js"
 import { notesFor } from "../data/notes.js"
+import { useConcepts } from "../store/useConcepts"
 
 export default function ConceptInspector({
   concept,
@@ -11,12 +13,29 @@ export default function ConceptInspector({
   onRefresh,
   lookup,
 }) {
+  const { theme, setThemePref } = usePreferences()
+  const {
+    bookmarkedIds,
+    masteredIds,
+    selectedId,
+    bookmarkConcept,
+    unbookmarkConcept,
+    masterConcept,
+    unmasterConcept,
+    selectConcept,
+    deselectConcept,
+  } = useConcepts()
+
   if (!concept) return <InspectorEmpty />
 
   const prereqs = (concept.prerequisites || []).filter((id) => lookup[id])
   const usedLater = (concept.usedIn || []).filter((id) => lookup[id])
   const notes = notesFor(concept.id)
   const status = concept.retention >= 75 ? "Strong" : concept.retention >= 55 ? "Steady" : "Fading"
+
+  // Helper: check bookmark/master state from Redux
+  const isBookmarked = (id) => bookmarkedIds.includes(id)
+  const isMastered = (id) => masteredIds.includes(id)
 
   return (
     <aside className="inspector" aria-label="Concept inspector">
@@ -102,6 +121,42 @@ export default function ConceptInspector({
       </div>
 
       <div className="inspector-foot">
+        <div className="inspector-action-icons">
+          {isBookmarked(concept.id) ? (
+            <button
+              title="Unbookmark"
+              className="inspector-action-btn"
+              onClick={() => unbookmarkConcept(concept.id)}
+            >
+             ☆
+            </button>
+          ) : (
+            <button
+              title="Bookmark"
+              className="inspector-action-btn"
+              onClick={() => bookmarkConcept(concept.id)}
+            >
+             ☆
+            </button>
+          )}
+          {isMastered(concept.id) ? (
+            <button
+              title="Unmaster"
+              className="inspector-action-btn"
+              onClick={() => unmasterConcept(concept.id)}
+            >
+             ★
+            </button>
+          ) : (
+            <button
+              title="Master"
+              className="inspector-action-btn"
+              onClick={() => masterConcept(concept.id)}
+            >
+             ★
+            </button>
+          )}
+        </div>
         <button type="button" className="btn btn-primary" onClick={() => onRefresh(concept.id)}>
           Quick Refresh
         </button>

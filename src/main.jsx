@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom"
 import { Provider } from "react-redux"
 import App from "./App.jsx"
 import { ToastProvider } from "./context/ToastContext.jsx"
+import { PreferencesProvider } from "./context/PreferencesContext.jsx"
 import { store } from "./store/store.js"
 import "./styles/global.css"
 
@@ -21,11 +22,13 @@ import "./styles/profile.css"      // profile page + menu
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* Redux store -> notes data | ToastProvider (Context) -> toast messages */}
+      {/* Redux store -> notes data | ToastProvider (Context) -> toast messages | PreferencesProvider (Context) -> app theme preference */}
       <Provider store={store}>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
+        <PreferencesProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </PreferencesProvider>
       </Provider>
     </BrowserRouter>
   </React.StrictMode>

@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo } from "react"
+import React, { useEffect, useMemo, useState } from "react"
+
+import { useConcepts } from "../store/useConcepts"
 
 import GraphToolbar from "./GraphToolbar.jsx"
 import KnowledgeGraph from "./KnowledgeGraph.jsx"
@@ -10,15 +12,14 @@ import GraphHealth from "./GraphHealth.jsx"
 import { concepts } from "../data/concepts.js"
 import { connections } from "../data/connections.js"
 
-// The Knowledge Map screen. All state lives in App — this component only
-// arranges toolbar + graph + inspector and passes callbacks up.
+// The Knowledge Map screen. State comes from App props (concepts data, filters)
+// and from Redux (bookmark/mastery selection). Both sources are combined here.
 export default function KnowledgeMapPage({
   conceptsLive,
   conceptsLiveById,
-  selectedId,
-  setSelectedId,
-  hoveredId,
-  setHoveredId,
+  activities,
+  notifications,
+  onExplore,
   semesterFilter,
   setSemesterFilter,
   subjectFilter,
@@ -32,22 +33,47 @@ export default function KnowledgeMapPage({
   viewRef,
   onRefresh,
 }) {
+  const {
+    bookmarkedIds,
+    masteredIds,
+    selectedId,
+    bookConcept,
+    unbookConcept,
+    masterConcept,
+    unmasterConcept,
+    selectConcept,
+    deselectConcept,
+  } = useConcepts()
+
+  // Helper: check if a concept is bookmarked or mastered from Redux
+  const isBookmarked = (id) => bookmarkedIds.includes(id)
+  const isMastered = (id) => masteredIds.includes(id)
+
+  // Keep original filter/search state from props
+  const [localSearchOpen, setLocalSearchOpen] = useState(searchOpen)
+  const [localSemesterFilter, setLocalSemesterFilter] = useState(semesterFilter)
+  const [localSubjectFilter, setLocalSubjectFilter] = useState(subjectFilter)
+  const [localShowPrerequisites, setLocalShowPrerequisites] = useState(
+    showPrerequisites
+  )
+  const [localShowRelated, setLocalShowRelated] = useState(showRelated)
+
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault()
-        setSearchOpen((o) => !o)
+        setLocalSearchOpen((o) => !o)
       }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [setSearchOpen])
+  }, [setLocalSearchOpen])
 
   const resetFilters = () => {
-    setSemesterFilter("all")
-    setSubjectFilter("all")
-    setShowPrerequisites(true)
-    setShowRelated(true)
+    setLocalSemesterFilter("all")
+    setLocalSubjectFilter("all")
+    setLocalShowPrerequisites(true)
+    setLocalShowRelated(true)
   }
 
   // ── derived data ──
@@ -55,11 +81,12 @@ export default function KnowledgeMapPage({
   const visibleConcepts = useMemo(
     () =>
       conceptsLive.filter((c) => {
-        if (semesterFilter !== "all" && String(c.semester) !== String(semesterFilter)) return false
-        if (subjectFilter !== "all" && c.subject !== subjectFilter) return false
+        if (localSemesterFilter !== "all" && String(c.semester) !== String(localSemesterFilter))
+          return false
+        if (localSubjectFilter !== "all" && c.subject !== localSubjectFilter) return false
         return true
       }),
-    [conceptsLive, semesterFilter, subjectFilter]
+    [conceptsLive, localSemesterFilter, localSubjectFilter]
   )
 
   const visibleIds = useMemo(() => new Set(visibleConcepts.map((c) => c.id)), [visibleConcepts])
@@ -72,11 +99,11 @@ export default function KnowledgeMapPage({
   const connectionCount = useMemo(
     () =>
       mapConnections.filter((e) => {
-        if (e.type === "prerequisite") return showPrerequisites
-        if (e.type === "used in") return showRelated
+        if (e.type === "prerequisite") return localShowPrerequisites
+        if (e.type === "used in") return localShowRelated
         return true
       }).length,
-    [mapConnections, showPrerequisites, showRelated]
+    [mapConnections, localShowPrerequisites, localShowRelated]
   )
 
   const selectedConcept = selectedId ? conceptsLiveById[selectedId] : null
@@ -84,14 +111,14 @@ export default function KnowledgeMapPage({
   return (
     <>
       <GraphToolbar
-        semester={semesterFilter}
-        subject={subjectFilter}
-        onSemester={setSemesterFilter}
-        onSubject={setSubjectFilter}
-        showPrerequisites={showPrerequisites}
-        showRelated={showRelated}
-        onTogglePrerequisites={setShowPrerequisites}
-        onToggleRelated={setShowRelated}
+        semester={localSemesterFilter}
+        subject={localSubjectFilter}
+        onSemester={setLocalSemesterFilter}
+        onSubject={setLocalSubjectFilter}
+        showPrerequisites={localShowPrerequisites}
+        showRelated={localShowRelated}
+        onTogglePrerequisites={setLocalShowPrerequisites}
+        onToggleRelated={setLocalShowRelated}
         onZoomIn={() => viewRef.current?.zoomIn()}
         onZoomOut={() => viewRef.current?.zoomOut()}
         onFit={() => viewRef.current?.fit()}
@@ -125,9 +152,16 @@ export default function KnowledgeMapPage({
               onSelect={setSelectedId}
               onHover={setHoveredId}
               onClear={() => setSelectedId(null)}
-              showPrerequisites={showPrerequisites}
-              showRelated={showRelated}
+              showPrerequisites={localShowPrerequisites}
+              showRelated={localShowRelated}
               viewRef={viewRef}
+              bookmarkedIds={bookmarkedIds}
+              masteredIds={masteredIds}
+              bookmarkConcept={bookConcept}
+              unbookmarkConcept={unbookConcept}
+              masterConcept={masterConcept}
+              unmasterConcept={unmasterConcept}
+              selectConcept={selectConcept}
             />
           )}
           <Legend />
@@ -140,18 +174,18 @@ export default function KnowledgeMapPage({
           onRefresh={onRefresh}
           lookup={conceptsLiveById}
         />
-      </div>
 
-      <SearchConcepts
-        concepts={concepts}
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelect={(id) => {
-          setSelectedId(id)
-          setSearchOpen(false)
-          requestAnimationFrame(() => viewRef.current?.focusOn(id))
-        }}
-      />
+        <SearchConcepts
+          concepts={concepts}
+          open={localSearchOpen}
+          onClose={() => setLocalSearchOpen(false)}
+          onSelect={(id) => {
+            setSelectedId(id)
+            setLocalSearchOpen(false)
+            requestAnimationFrame(() => viewRef.current?.focusOn(id))
+          }}
+        />
+      </div>
     </>
   )
 }
