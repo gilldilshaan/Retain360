@@ -33,18 +33,38 @@ export default function KnowledgeMapPage({
   setSearchOpen,
   viewRef,
   onRefresh,
+  selectedId,
+  setSelectedId,
+  hoveredId,
+  setHoveredId,
 }) {
   const {
     bookmarkedIds,
     masteredIds,
+<<<<<<< HEAD
     bookmarkConcept,
     unbookmarkConcept,
+=======
+    // selectedId is already a prop from App; useConcepts provides the Redux version,
+    // but we keep the prop as the primary source of truth for graph selection.
+    // bookConcept/unbookConcept etc. are the new Redux actions.
+    bookConcept,
+    unbookConcept,
+>>>>>>> 4ff83ee (Update knowledge page components)
     masterConcept,
     unmasterConcept,
     selectConcept,
   } = useConcepts()
 
+<<<<<<< HEAD
   // Local UI state for graph interactions.
+=======
+  // Helper: check if a concept is bookmarked or mastered from Redux
+  const isBookmarked = (id) => bookmarkedIds.includes(id)
+  const isMastered = (id) => masteredIds.includes(id)
+
+  // Keep original filter/search state from props, with local state for toggle
+>>>>>>> 4ff83ee (Update knowledge page components)
   const [localSearchOpen, setLocalSearchOpen] = useState(searchOpen)
   const [localSemesterFilter, setLocalSemesterFilter] =
     useState(semesterFilter)
