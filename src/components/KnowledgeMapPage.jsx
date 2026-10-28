@@ -41,30 +41,18 @@ export default function KnowledgeMapPage({
   const {
     bookmarkedIds,
     masteredIds,
-<<<<<<< HEAD
-    bookmarkConcept,
-    unbookmarkConcept,
-=======
-    // selectedId is already a prop from App; useConcepts provides the Redux version,
-    // but we keep the prop as the primary source of truth for graph selection.
-    // bookConcept/unbookConcept etc. are the new Redux actions.
     bookConcept,
     unbookConcept,
->>>>>>> 4ff83ee (Update knowledge page components)
     masterConcept,
     unmasterConcept,
     selectConcept,
   } = useConcepts()
 
-<<<<<<< HEAD
-  // Local UI state for graph interactions.
-=======
-  // Helper: check if a concept is bookmarked or mastered from Redux
+// Helper: check if a concept is bookmarked or mastered from Redux
   const isBookmarked = (id) => bookmarkedIds.includes(id)
   const isMastered = (id) => masteredIds.includes(id)
 
   // Keep original filter/search state from props, with local state for toggle
->>>>>>> 4ff83ee (Update knowledge page components)
   const [localSearchOpen, setLocalSearchOpen] = useState(searchOpen)
   const [localSemesterFilter, setLocalSemesterFilter] =
     useState(semesterFilter)
@@ -73,9 +61,6 @@ export default function KnowledgeMapPage({
   const [localShowPrerequisites, setLocalShowPrerequisites] =
     useState(showPrerequisites)
   const [localShowRelated, setLocalShowRelated] = useState(showRelated)
-  const [selectedId, setSelectedIdState] = useState(null)
-  const [hoveredId, setHoveredId] = useState(null)
-
   // Keep local controls synchronized with App props.
   useEffect(() => {
     setLocalSearchOpen(searchOpen)
@@ -114,15 +99,12 @@ export default function KnowledgeMapPage({
   }, [])
 
   // Synchronize graph selection with Redux.
-  const setSelectedId = (id) => {
+  const handleSelectConcept = (id) => {
     setSelectedIdState(id)
     if (id) {
       selectConcept(id)
     }
   }
-
-  const isBookmarked = (id) => bookmarkedIds.includes(id)
-  const isMastered = (id) => masteredIds.includes(id)
 
   const resetFilters = () => {
     setLocalSemesterFilter("all")
@@ -273,7 +255,7 @@ export default function KnowledgeMapPage({
               connections={mapConnections}
               selectedId={selectedId}
               hoveredId={hoveredId}
-              onSelect={setSelectedId}
+              onSelect={handleSelectConcept}
               onHover={setHoveredId}
               onClear={() => setSelectedId(null)}
               showPrerequisites={localShowPrerequisites}
