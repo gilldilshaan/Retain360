@@ -43,6 +43,8 @@ export default function KnowledgeMapPage({
     masteredIds,
     bookConcept,
     unbookConcept,
+    bookmarkConcept,
+    unbookmarkConcept,
     masterConcept,
     unmasterConcept,
     selectConcept,
