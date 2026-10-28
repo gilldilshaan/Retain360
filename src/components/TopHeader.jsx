@@ -1,4 +1,4 @@
-import React from "react"
+import { useState } from "react"
 import { SearchIcon, BellIcon, MoonIcon, SunIcon } from "./Icons.jsx"
 import { usePreferences } from "../context/PreferencesContext"
 import NotificationsPanel from "./dashboard/NotificationsPanel.jsx"
