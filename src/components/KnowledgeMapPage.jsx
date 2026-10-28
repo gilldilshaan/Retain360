@@ -102,7 +102,7 @@ export default function KnowledgeMapPage({
 
   // Synchronize graph selection with Redux.
   const handleSelectConcept = (id) => {
-    setSelectedIdState(id)
+    setSelectedId(id)
     if (id) {
       selectConcept(id)
     }
